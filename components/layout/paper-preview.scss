@@ -1,0 +1,25 @@
+.paper-preview {
+  background: #f9f9f9;
+  border: 2px solid #888;
+  position: relative;
+  overflow: hidden;
+
+  &__margin {
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__grid {
+    z-index: 2;
+  }
+
+  &__meta {
+    font-family: inherit;
+    opacity: 0.96;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 8px;
+  }
+}

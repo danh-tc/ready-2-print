@@ -1,11 +1,12 @@
-import SizeConfigurator from "@/components/SizeConfigurator";
+import "@/styles/global.scss";
+import "@/styles/_reset.scss";
+import LayoutConfigurator from "@/components/layout/LayoutConfigurator";
 
 export default function Home() {
-  
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Choose Paper Size</h1>
-      <SizeConfigurator />
-    </div>
+    <>
+      <h1>Ready 2 Print</h1>
+      <LayoutConfigurator />
+    </>
   );
 }
