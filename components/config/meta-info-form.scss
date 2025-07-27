@@ -1,19 +1,29 @@
 .meta-info-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  &__checkbox {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
   h3 {
     margin: 0 0 8px 0;
   }
-  label {
+
+  &__input {
     display: flex;
     flex-direction: column;
     font-weight: 500;
   }
+
   input {
     margin-top: 2px;
     padding: 3px 6px;
     font-size: 1em;
-    width: 220px;
   }
 }

@@ -11,9 +11,9 @@ interface Props {
 }
 
 export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
-  <form className="paper-settings-form">
+  <form className="rethink-paper-settings-form">
     <h3>Paper Settings</h3>
-    <div>
+    <div className="rethink-paper-settings-form__dimensions">
       <label>
         Width (mm)
         <input
@@ -35,7 +35,7 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
         />
       </label>
     </div>
-    <div>
+    <div className="rethink-paper-settings-form__margins">
       <label>
         Margin Top (mm)
         <input
@@ -89,7 +89,7 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
         />
       </label>
     </div>
-    <div>
+    <div className="rethink-paper-settings-form__gap">
       <label>
         Gap Horizontal (mm)
         <input

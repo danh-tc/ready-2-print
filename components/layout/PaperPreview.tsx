@@ -13,6 +13,7 @@ interface Props {
   customerName?: string;
   date?: string;
   description?: string;
+  showMeta?: boolean;
 }
 
 export const PaperPreview: React.FC<Props> = ({
@@ -120,9 +121,7 @@ export const PaperPreview: React.FC<Props> = ({
             alignItems: "center",
             paddingLeft: margin.left,
             paddingRight: margin.right,
-            fontSize: Math.max(10, margin.bottom * 0.6),
-            color: "#444",
-            background: "rgba(255,255,255,0.90)",
+            color: "#373737",
             boxSizing: "border-box",
             zIndex: 3,
             pointerEvents: "none",

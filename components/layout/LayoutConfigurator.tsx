@@ -9,6 +9,14 @@ import { useState } from "react";
 import { ImageSettingsForm } from "../config/ImageSettingsForm";
 import { MetaInfoForm } from "../config/MetaInfoForm";
 
+function getTodayString() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function LayoutConfigurator() {
   const [paper, setPaper] = useState({
     width: 297,
@@ -19,24 +27,32 @@ export default function LayoutConfigurator() {
   const [image, setImage] = useState({ width: 90, height: 60 });
   const [meta, setMeta] = useState({
     customerName: "",
-    date: "",
+    date: getTodayString(),
     description: "",
   });
+  const [showMeta, setShowMeta] = useState(true);
+
   const layout = calculateGridLayout(paper, image);
+
   return (
     <div className="rethink-layout-configurator">
       <div className="rethink-layout-configurator__config">
         <PaperSettingsForm value={paper} onChange={setPaper} />
         <ImageSettingsForm value={image} onChange={setImage} />
-        <MetaInfoForm value={meta} onChange={setMeta} />
+        <MetaInfoForm
+          value={meta}
+          onChange={setMeta}
+          showMeta={showMeta}
+          onShowMetaChange={setShowMeta}
+        />
       </div>
       <div className="rethink-layout-configurator__preview">
         <PaperPreview
           paper={paper}
           image={image}
-          customerName={meta.customerName}
-          description={meta.description}
-          date={meta.date}
+          customerName={showMeta ? meta.customerName : undefined}
+          description={showMeta ? meta.description : undefined}
+          date={showMeta ? meta.date : undefined}
         />
         <SummaryTable
           paper={paper}

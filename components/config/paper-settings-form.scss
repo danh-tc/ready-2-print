@@ -1,7 +1,15 @@
-.paper-settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.rethink-paper-settings-form {
+  &__dimensions,
+  &__margins,
+  &__gap {
+    display: flex;
+    gap: 5px;
+  }
+  & {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
   h3 {
     margin: 0 0 8px 0;
   }
@@ -14,7 +22,6 @@
   input {
     margin-top: 2px;
     padding: 3px 6px;
-    width: 100px;
     font-size: 1em;
   }
 }
