@@ -1,0 +1,35 @@
+.sheet-paginator {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 12px 0;
+  user-select: none;
+
+  button {
+    font-size: 18px;
+    padding: 4px 12px;
+    border: 1px solid #bbb;
+    background: #f8f8f8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    &:not(:disabled):hover {
+      background: #e0e5e3;
+      color: #3a6e57;
+    }
+  }
+
+  span {
+    font-size: 15px;
+    font-weight: 500;
+    color: #253f3f;
+    min-width: 110px;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+}

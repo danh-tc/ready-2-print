@@ -7,15 +7,15 @@ interface Props {
     description: string;
   };
   onChange: (next: Props["value"]) => void;
-  showMeta: boolean;
-  onShowMetaChange: (next: boolean) => void;
+  displayMeta: boolean;
+  onDisplayMetaChange: (next: boolean) => void;
 }
 
 export const MetaInfoForm: React.FC<Props> = ({
   value,
   onChange,
-  showMeta,
-  onShowMetaChange,
+  displayMeta,
+  onDisplayMetaChange,
 }) => (
   <div className="meta-info-form">
     <h3 className="meta-info-form__header">Meta Info</h3>
@@ -23,8 +23,8 @@ export const MetaInfoForm: React.FC<Props> = ({
       <label className="meta-info-form__checkbox">
         <input
           type="checkbox"
-          checked={showMeta}
-          onChange={(e) => onShowMetaChange(e.target.checked)}
+          checked={displayMeta}
+          onChange={(e) => onDisplayMetaChange(e.target.checked)}
         />
         Print metadata
       </label>

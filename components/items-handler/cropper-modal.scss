@@ -1,0 +1,66 @@
+.cropper-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(30, 40, 40, 0.35);
+  }
+  &__body {
+    position: relative;
+    background: #fff;
+    border-radius: 9px;
+    box-shadow: 0 4px 36px #0003;
+    padding: 30px 20px 18px 20px;
+    z-index: 1;
+    min-width: 430px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  &__cropper {
+    margin-bottom: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    // Optionally customize cropper inner if needed
+    .cropper-view-box {
+      border-radius: 8px;
+    }
+    .cropper-face {
+      background: rgba(58, 167, 151, 0.09);
+    }
+  }
+  &__toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    // Place rotate/flip btns here
+  }
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  &__btn {
+    padding: 6px 18px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    &--cancel {
+      background: #eee;
+      color: #363636;
+    }
+    &--confirm {
+      background: #26764a;
+      color: #fff;
+    }
+  }
+}

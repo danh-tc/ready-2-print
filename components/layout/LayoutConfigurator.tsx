@@ -5,34 +5,36 @@ import { PaperPreview } from "./PaperPreview";
 import { SummaryTable } from "./SummaryTable";
 import "./layout-configurator.scss";
 import { PaperSettingsForm } from "../config/PaperSettingsForm";
-import { useState } from "react";
 import { ImageSettingsForm } from "../config/ImageSettingsForm";
 import { MetaInfoForm } from "../config/MetaInfoForm";
-
-function getTodayString() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
+import { useImpositionStore } from "@/store/useImpositionStore";
+import { useState } from "react";
+import { useHydrated } from "@/hooks/useImpositionHydrated";
+import Link from "next/link";
 
 export default function LayoutConfigurator() {
-  const [paper, setPaper] = useState({
-    width: 297,
-    height: 210,
-    margin: { top: 20, right: 20, bottom: 20, left: 20 },
-    gap: { horizontal: 5, vertical: 5 },
-  });
-  const [image, setImage] = useState({ width: 90, height: 60 });
-  const [meta, setMeta] = useState({
-    customerName: "",
-    date: getTodayString(),
-    description: "",
-  });
-  const [showMeta, setShowMeta] = useState(true);
+  // Zustand hooks (global state)
+  const paper = useImpositionStore((s) => s.paper);
+  const setPaper = useImpositionStore((s) => s.setPaper);
+
+  const image = useImpositionStore((s) => s.image);
+  const setImage = useImpositionStore((s) => s.setImage);
+
+  const meta = useImpositionStore((s) => s.meta);
+  const setMeta = useImpositionStore((s) => s.setMeta);
+
+  // const [showMeta, setShowMeta] = useState(true);
+  const displayMeta = useImpositionStore((s) => s.displayMeta);
+  const setDisplayMeta = useImpositionStore((s) => s.setDisplayMeta);
 
   const layout = calculateGridLayout(paper, image);
+  const hydrated = useHydrated();
+  if (!hydrated) return null; // Ensure the component only renders after hydration
+
+  const handleResetForm = () => {
+    useImpositionStore.persist.clearStorage();
+    window.location.reload();
+  };
 
   return (
     <div className="rethink-layout-configurator">
@@ -42,17 +44,17 @@ export default function LayoutConfigurator() {
         <MetaInfoForm
           value={meta}
           onChange={setMeta}
-          showMeta={showMeta}
-          onShowMetaChange={setShowMeta}
+          displayMeta={displayMeta ?? true}
+          onDisplayMetaChange={setDisplayMeta}
         />
       </div>
       <div className="rethink-layout-configurator__preview">
         <PaperPreview
           paper={paper}
           image={image}
-          customerName={showMeta ? meta.customerName : undefined}
-          description={showMeta ? meta.description : undefined}
-          date={showMeta ? meta.date : undefined}
+          customerName={displayMeta ? meta.customerName : undefined}
+          description={displayMeta ? meta.description : undefined}
+          date={displayMeta ? meta.date : undefined}
         />
         <SummaryTable
           paper={paper}
@@ -61,6 +63,12 @@ export default function LayoutConfigurator() {
           gap={paper.gap}
           margin={paper.margin}
         />
+      </div>
+      <div className="rethink-layout-configurator__actions">
+        <button onClick={handleResetForm}>Reset</button>
+        <button>
+          <Link href="/impose">Confirm</Link>
+        </button>
       </div>
     </div>
   );
