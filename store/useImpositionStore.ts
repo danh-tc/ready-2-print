@@ -1,18 +1,10 @@
 import { getTodayString } from "@/lib/utils";
+import { ImageConfig, PaperConfig } from "@/types/types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type PaperConfig = {
-  width: number;
-  height: number;
-  margin: { top: number; right: number; bottom: number; left: number };
-  gap: { horizontal: number; vertical: number };
-};
 
-export type ImageConfig = {
-  width: number;
-  height: number;
-};
+
 
 export type MetaInfo = {
   customerName: string;
