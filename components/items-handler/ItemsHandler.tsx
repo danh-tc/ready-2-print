@@ -12,6 +12,7 @@ import { SheetPaginator } from "./SheetPaginator";
 import { useHydrated } from "@/hooks/useImpositionHydrated";
 import { CropSettings } from "@/types/types";
 import { CropperModal } from "./CropperModal";
+import { exportImpositionPdf } from "@/lib/exportImpositionPdf";
 
 export default function ItemsHandler() {
   const [images, setImages] = useState<(UploadedImage | undefined)[]>([]);
@@ -103,6 +104,24 @@ export default function ItemsHandler() {
     setCurrentSheet(0);
   };
 
+  const handleExportPdf = async () => {
+    const pdfBytes = await exportImpositionPdf({
+      paper,
+      image,
+      sheets, // all sheets (pages)
+      layout,
+      customerName: meta.customerName,
+      description: meta.description,
+      date: meta.date,
+      cutMarkLengthMm: 3, // e.g. 3mm cut marks (default)
+      cutMarkThicknessPt: 0.7, // e.g. slightly thicker line
+      cutMarkColor: { r: 0, g: 0, b: 0 }, // black lines
+    });
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  };
+
   const hydrated = useHydrated();
   if (!hydrated) return null; // Ensure the component only renders after hydration
 
@@ -125,7 +144,7 @@ export default function ItemsHandler() {
         image={image}
         customerName={meta.customerName}
         description={meta.description}
-        images={(sheets[currentSheet] || [])}
+        images={sheets[currentSheet] || []}
         date={meta.date}
         allowSlotImageUpload={true}
         onSlotAddImage={handleSlotAddImage}
@@ -157,6 +176,7 @@ export default function ItemsHandler() {
           }}
         />
       )}
+      <button onClick={handleExportPdf}>Export PDF</button>
     </div>
   );
 }

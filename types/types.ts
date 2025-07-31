@@ -16,3 +16,34 @@ export interface CropSettings {
   scaleX: number; // usually 1 or -1 (flip)
   scaleY: number; // usually 1 or -1 (flip)
 }
+
+export interface PaperConfig {
+  width: number;
+  height: number;
+  margin: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  gap: {
+    horizontal: number;
+    vertical: number;
+  };
+}
+
+export interface ImageConfig {
+  width: number;
+  height: number;
+}
+
+export interface LayoutConfig {
+  rows: number;
+  cols: number;
+}
+
+export interface MetaInfo {
+  customerName?: string;
+  description?: string;
+  date?: string;
+}

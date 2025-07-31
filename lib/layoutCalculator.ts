@@ -1,22 +1,5 @@
-export interface PaperConfig {
-  width: number;
-  height: number;
-  margin: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
-  gap: {
-    horizontal: number;
-    vertical: number;
-  };
-}
+import { ImageConfig, PaperConfig } from "@/types/types";
 
-export interface ImageConfig {
-  width: number;
-  height: number;
-}
 
 export interface GridLayout {
   rows: number;
@@ -44,4 +27,3 @@ export function calculateGridLayout(
     totalSlots: rows * cols,
   };
 }
-
