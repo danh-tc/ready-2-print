@@ -21,20 +21,17 @@ export default function ItemsHandler() {
   const paper = useImpositionStore((s) => s.paper);
   const meta = useImpositionStore((s) => s.meta);
 
-  // Calculate grid layout and how many slots per sheet
   const layout = calculateGridLayout(paper, image);
   const slotsPerSheet = layout.rows * layout.cols;
 
-  // Split images into sheets (array of arrays)
   const sheets: (UploadedImage | undefined)[][] = [];
   for (let i = 0; i < images.length; i += slotsPerSheet) {
     sheets.push(images.slice(i, i + slotsPerSheet));
   }
-  // Ensure at least one sheet exists for adding images per slot
+
   if (sheets.length === 0) {
     sheets.push(Array(slotsPerSheet).fill(undefined));
   } else if (sheets[sheets.length - 1].length < slotsPerSheet) {
-    // Pad the last sheet with undefined for empty slots
     sheets[sheets.length - 1] = [
       ...sheets[sheets.length - 1],
       ...Array(slotsPerSheet - sheets[sheets.length - 1].length).fill(
@@ -62,7 +59,6 @@ export default function ItemsHandler() {
     });
   };
 
-  // Handler for per-slot image upload
   const handleSlotAddImage = (slotIdx: number, file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -72,9 +68,7 @@ export default function ItemsHandler() {
         file,
       };
       setImages((prevImages) => {
-        // Compute where in the global images array this slot falls
         const baseIndex = currentSheet * slotsPerSheet;
-        // Ensure array is long enough for all possible slots
         const newImages = [...prevImages];
         while (newImages.length < baseIndex + slotsPerSheet)
           newImages.push(undefined);
@@ -85,12 +79,10 @@ export default function ItemsHandler() {
     reader.readAsDataURL(file);
   };
 
-  // Handler for per-slot image remove
   const handleSlotRemoveImage = (slotIdx: number) => {
     setImages((prevImages) => {
       const baseIndex = currentSheet * slotsPerSheet;
       const newImages = [...prevImages];
-      // Only clear if slot exists (prevent errors)
       if (newImages[baseIndex + slotIdx]) {
         newImages[baseIndex + slotIdx] = undefined;
       }
@@ -104,7 +96,7 @@ export default function ItemsHandler() {
   };
 
   const hydrated = useHydrated();
-  if (!hydrated) return null; // Ensure the component only renders after hydration
+  if (!hydrated) return null;
 
   return (
     <div>
@@ -125,38 +117,39 @@ export default function ItemsHandler() {
         image={image}
         customerName={meta.customerName}
         description={meta.description}
-        images={(sheets[currentSheet] || [])}
+        images={sheets[currentSheet] || []}
         date={meta.date}
         allowSlotImageUpload={true}
         onSlotAddImage={handleSlotAddImage}
         onSlotRemoveImage={handleSlotRemoveImage}
         onSlotEditImage={handleSlotEditImage}
       />
-      {cropModal.open && cropModal.src && (
-        <CropperModal
-          src={cropModal.src}
-          aspectRatio={image.width / image.height} // pass slot ratio here!
-          initialCrop={cropModal.initialCrop}
-          onCancel={() =>
-            setCropModal({ open: false, slotIdx: null, src: null })
-          }
-          onCrop={({ dataUrl, cropSettings }) => {
-            // Save new crop settings and/or preview image for the slot
-            setImages((prev) => {
-              const baseIdx = currentSheet * slotsPerSheet;
-              const newImages = [...prev];
-              if (cropModal.slotIdx !== null) {
-                const old = newImages[baseIdx + cropModal.slotIdx];
-                newImages[baseIdx + cropModal.slotIdx] = old
-                  ? { ...old, src: old.src, crop: cropSettings } // Store crop settings!
-                  : { src: dataUrl, name: "cropped", crop: cropSettings };
-              }
-              return newImages;
-            });
-            setCropModal({ open: false, slotIdx: null, src: null });
-          }}
-        />
-      )}
+      <CropperModal
+        isOpen={cropModal.open}
+        imageSrc={cropModal.src || ""}
+        onClose={() =>
+          setCropModal({
+            open: false,
+            slotIdx: null,
+            src: null,
+          })
+        }
+        onConfirm={({ dataUrl, crop }) => {
+          if (cropModal.slotIdx === null) return;
+          const baseIndex = currentSheet * slotsPerSheet;
+          const newImages = [...images];
+          const oldImage = newImages[baseIndex + cropModal.slotIdx];
+          if (!oldImage) return;
+
+          newImages[baseIndex + cropModal.slotIdx] = {
+            ...oldImage,
+            src: dataUrl, // ✅ Use new cropped image
+            crop, // ✅ Save crop metadata
+          };
+          setImages(newImages);
+          setCropModal({ open: false, slotIdx: null, src: null });
+        }}
+      />
     </div>
   );
 }

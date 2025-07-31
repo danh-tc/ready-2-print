@@ -1,66 +1,84 @@
-.cropper-modal {
+.cropper-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  background-color: rgba(0, 0, 0, 1);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
+}
 
-  &__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(30, 40, 40, 0.35);
-  }
-  &__body {
-    position: relative;
-    background: #fff;
-    border-radius: 9px;
-    box-shadow: 0 4px 36px #0003;
-    padding: 30px 20px 18px 20px;
-    z-index: 1;
-    min-width: 430px;
-    max-width: 90vw;
+.cropper-modal {
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cropper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #e0f0e9;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 16px;
+  border-bottom: 1px solid #ccc;
+
+  .btn-icon {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  &__cropper {
-    margin-bottom: 16px;
-    border-radius: 8px;
-    overflow: hidden;
-    // Optionally customize cropper inner if needed
-    .cropper-view-box {
-      border-radius: 8px;
-    }
-    .cropper-face {
-      background: rgba(58, 167, 151, 0.09);
-    }
-  }
-  &__toolbar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 14px;
-    // Place rotate/flip btns here
-  }
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 6px;
-  }
-  &__btn {
-    padding: 6px 18px;
-    font-weight: 600;
-    border-radius: 5px;
+    align-items: center;
+    gap: 6px;
+    background: none;
     border: none;
     cursor: pointer;
-    &--cancel {
-      background: #eee;
-      color: #363636;
+    font-weight: 500;
+    color: #333;
+
+    &.confirm {
+      color: #1b8830;
     }
-    &--confirm {
-      background: #26764a;
-      color: #fff;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.cropper-title {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.cropper-body {
+  padding: 0;
+  background: #f9f9f9;
+}
+
+.cropper-toolbar {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  background: #f1f1f1;
+  border-top: 1px solid #ccc;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+      background-color: #e0f0e9;
     }
   }
 }
