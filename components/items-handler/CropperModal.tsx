@@ -1,72 +1,159 @@
-import { useRef, useEffect } from "react";
+"use client";
+
+import React, { useRef, useEffect, useState } from "react";
 import Cropper, { ReactCropperElement } from "react-cropper";
+import "cropperjs/dist/cropper.css";
 import "./cropper-modal.scss";
+
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  RotateCw,
+  Undo2,
+  X,
+  Check,
+} from "lucide-react";
 import { CropSettings } from "@/types/types";
 
 interface CropperModalProps {
-  src: string;
-  aspectRatio: number | undefined;
-  initialCrop?: CropSettings;
-  onCancel: () => void;
-  onCrop: (crop: { dataUrl: string; cropSettings: CropSettings }) => void;
+  isOpen: boolean;
+  imageSrc: string;
+  onClose: () => void;
+  onConfirm: (result: { dataUrl: string; crop: CropSettings }) => void;
 }
 
 export const CropperModal: React.FC<CropperModalProps> = ({
-  src,
-  aspectRatio,
-  initialCrop,
-  onCancel,
-  onCrop,
+  isOpen,
+  imageSrc,
+  onClose,
+  onConfirm,
 }) => {
   const cropperRef = useRef<ReactCropperElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
 
+  // Reset "loaded" state when opening
   useEffect(() => {
-    if (initialCrop && cropperRef.current && cropperRef.current.cropper) {
-      cropperRef.current.cropper.setData(initialCrop);
-    }
-  }, [initialCrop, src]);
+    if (isOpen) setLoaded(false);
+  }, [isOpen]);
 
-  const handleCrop = () => {
+  // Escape key to close modal
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [isOpen, onClose]);
+
+  // Click outside modal to close
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, onClose]);
+
+  // Toolbar actions
+  const zoomIn = () => cropperRef.current?.cropper.zoom(0.1);
+  const zoomOut = () => cropperRef.current?.cropper.zoom(-0.1);
+  const rotateLeft = () => cropperRef.current?.cropper.rotate(-90);
+  const rotateRight = () => cropperRef.current?.cropper.rotate(90);
+  const reset = () => {
     const cropper = cropperRef.current?.cropper;
     if (!cropper) return;
-    const cropSettings = cropper.getData(true) as CropSettings;
-    const dataUrl = cropper.getCroppedCanvas().toDataURL();
-    onCrop({ dataUrl, cropSettings });
+
+    cropper.reset();
+    cropper.clear();
+    cropper.crop();
   };
-  debugger
+
+  // Confirm crop and return data
+  const handleConfirm = () => {
+    const cropper = cropperRef.current?.cropper;
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas();
+    if (!canvas) return;
+
+    const dataUrl = canvas.toDataURL("image/png");
+    const data = cropper.getData();
+    const imageData = cropper.getImageData();
+
+    const crop: CropSettings = {
+      x: data.x,
+      y: data.y,
+      width: data.width,
+      height: data.height,
+      rotate: data.rotate,
+      scaleX: data.scaleX,
+      scaleY: data.scaleY,
+      naturalWidth: imageData.naturalWidth,
+      naturalHeight: imageData.naturalHeight,
+    };
+
+    onConfirm({ dataUrl, crop });
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="cropper-modal">
-      <div className="cropper-modal__backdrop" onClick={onCancel} />
-      <div className="cropper-modal__body">
-        <div className="cropper-modal__cropper">
+    <div className="cropper-overlay">
+      <div className="cropper-modal" ref={modalRef}>
+        <div className="cropper-header">
+          <button className="btn-icon" onClick={onClose}>
+            <X size={20} />
+            Cancel
+          </button>
+          <div className="cropper-title">Crop Photo 2×3</div>
+          <button
+            className="btn-icon confirm"
+            onClick={handleConfirm}
+            disabled={!loaded}
+          >
+            <Check size={20} />
+            Confirm
+          </button>
+        </div>
+
+        <div className="cropper-body">
           <Cropper
-            src={src}
-            style={{ height: 370, width: "100%" }}
-            aspectRatio={aspectRatio}
+            src={imageSrc}
+            style={{ height: 400, width: "100%" }}
+            aspectRatio={2 / 3}
             guides={true}
             viewMode={1}
+            dragMode="move"
+            autoCropArea={1}
             background={false}
             responsive={true}
-            autoCropArea={1}
             checkOrientation={false}
+            onInitialized={(instance) => {
+              setLoaded(true);
+            }}
             ref={cropperRef}
           />
         </div>
-        <div className="cropper-modal__toolbar">
-          {/* Add rotate, flip, etc. here if you want */}
-        </div>
-        <div className="cropper-modal__actions">
-          <button
-            onClick={onCancel}
-            className="cropper-modal__btn cropper-modal__btn--cancel"
-          >
-            Cancel
+
+        <div className="cropper-toolbar">
+          <button onClick={zoomOut}>
+            <ZoomOut size={20} /> Shrink
           </button>
-          <button
-            onClick={handleCrop}
-            className="cropper-modal__btn cropper-modal__btn--confirm"
-          >
-            Crop & Save
+          <button onClick={zoomIn}>
+            <ZoomIn size={20} /> Enlarge
+          </button>
+          <button onClick={rotateLeft}>
+            <RotateCcw size={20} /> Rotate Left
+          </button>
+          <button onClick={rotateRight}>
+            <RotateCw size={20} /> Rotate Right
+          </button>
+          <button onClick={reset}>
+            <Undo2 size={20} /> Reset
           </button>
         </div>
       </div>
