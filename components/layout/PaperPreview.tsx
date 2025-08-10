@@ -2,9 +2,8 @@ import React, { useMemo } from "react";
 import { calculateGridLayout } from "@/lib/layoutCalculator";
 import { ImageCell } from "./ImageCell";
 import "./paper-preview.scss";
-import { UploadedImage } from "../items-handler/BulkImageUploader";
 import { Crop, X } from "lucide-react";
-import { ImageConfig, PaperConfig } from "@/types/types";
+import { ImageConfig, PaperConfig, UploadedImage } from "@/types/types";
 
 interface Props {
   paper: PaperConfig;
