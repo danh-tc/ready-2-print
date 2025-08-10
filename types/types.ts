@@ -1,12 +1,10 @@
-// The per-slot image data
 export interface SlotImage {
-  src: string; // The original uploaded image (DataURL or URL)
-  name: string; // File name
-  file?: File; // Optional: keep for download
-  crop?: CropSettings; // User's cropping & transform data for this slot
+  src: string;
+  name: string;
+  file?: File;
+  crop?: CropSettings;
 }
 
-// The crop settings as returned by cropper.getData()
 export interface CropSettings {
   x: number;
   y: number;
@@ -52,7 +50,7 @@ export interface MetaInfo {
 
 export interface UploadedImage {
   originalSrc: string;
-  src: string; 
+  src: string;
   name: string;
   file?: File;
   crop?: CropSettings;
