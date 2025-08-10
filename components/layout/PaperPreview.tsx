@@ -16,7 +16,7 @@ interface Props {
   allowSlotImageUpload?: boolean;
   onSlotAddImage?: (slotIdx: number, file: File) => void;
   onSlotRemoveImage?: (slotIdx: number) => void;
-  onSlotEditImage?: (slotIdx: number) => void; // to trigger crop modal in parent
+  onSlotEditImage?: (slotIdx: number) => void; 
 }
 
 export const PaperPreview: React.FC<Props> = ({
@@ -187,7 +187,7 @@ export const PaperPreview: React.FC<Props> = ({
             left: 0,
             width: "100%",
             bottom: 0,
-            height: margin.bottom,
+            height: margin.bottom || 'fit-content',
             display: "flex",
             alignItems: "center",
             paddingLeft: margin.left,

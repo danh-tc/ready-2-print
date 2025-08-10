@@ -8,7 +8,6 @@ import { PaperSettingsForm } from "../config/PaperSettingsForm";
 import { ImageSettingsForm } from "../config/ImageSettingsForm";
 import { MetaInfoForm } from "../config/MetaInfoForm";
 import { useImpositionStore } from "@/store/useImpositionStore";
-import { useState } from "react";
 import { useHydrated } from "@/hooks/useImpositionHydrated";
 import Link from "next/link";
 
@@ -23,7 +22,6 @@ export default function LayoutConfigurator() {
   const meta = useImpositionStore((s) => s.meta);
   const setMeta = useImpositionStore((s) => s.setMeta);
 
-  // const [showMeta, setShowMeta] = useState(true);
   const displayMeta = useImpositionStore((s) => s.displayMeta);
   const setDisplayMeta = useImpositionStore((s) => s.setDisplayMeta);
 
