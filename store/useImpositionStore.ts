@@ -43,7 +43,7 @@ export const useImpositionStore = create<ImpositionState>()(
       paper: {
         width: 297,
         height: 210,
-        margin: { top: 10, right: 10, bottom: 10, left: 10 },
+        margin: { top: 5, right: 5, bottom: 5, left: 5 },
         gap: { horizontal: 3, vertical: 3 },
       },
       setPaper: (paper) => set({ paper }),

@@ -21,9 +21,7 @@ export function Footer() {
           aria-label="Product"
         >
           <div className="rethink-footer__heading">Product</div>
-          <Link href="/" className="rethink-footer__link">
-            Home
-          </Link>
+
           {/* Keep /configuration if that's your route; otherwise switch to /config */}
           <Link href="/configuration" className="rethink-footer__link">
             Configuration

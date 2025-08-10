@@ -1,3 +1,4 @@
+"use client";
 import "./image-settings-form.scss";
 
 interface Props {
@@ -6,12 +7,12 @@ interface Props {
 }
 
 export const ImageSettingsForm: React.FC<Props> = ({ value, onChange }) => (
-  <form className="image-settings-form">
-    <h3 className="image-settings-form__header">Image Settings</h3>
-    <div className="image-settings-form__dimensions">
+  <form className="rethink-image-settings-form">
+    <div className="rethink-image-settings-form__dimensions">
       <label>
         Width (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.width}
           onChange={(e) =>
@@ -19,9 +20,11 @@ export const ImageSettingsForm: React.FC<Props> = ({ value, onChange }) => (
           }
         />
       </label>
+
       <label>
         Height (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.height}
           onChange={(e) =>
