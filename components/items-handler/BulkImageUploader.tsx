@@ -1,13 +1,9 @@
 import React, { useRef } from "react";
-import { Upload, Trash2 } from "lucide-react"; // swap icons as you wish
+import { Upload, Trash2 } from "lucide-react";
 import "./bulk-image-uploader.scss";
-
-export interface UploadedImage {
-  src: string;
-  name: string;
-  file?: File;
-  crop?: import("@/types/types").CropSettings;
-}
+import type { UploadedImage } from "@/types/types";
+import { rotateIfNeeded } from "@/lib/rotateIfNeeded";
+import { autoCoverCrop } from "@/lib/autoCoverCrop";
 
 interface BulkImageUploaderProps {
   onImagesLoaded: (images: UploadedImage[]) => void;
@@ -15,6 +11,12 @@ interface BulkImageUploaderProps {
   label?: string;
   uploadedImages?: (UploadedImage | undefined)[];
   onClearAll?: () => void;
+  /** NEW: slot size to fit (in mm). If provided, images are auto-cropped like 'cover'. */
+  targetSizeMm?: { width: number; height: number };
+  /** NEW: output DPI for the auto-cropped image (default 300). */
+  dpi?: number;
+  /** NEW: image output format for auto-crop. */
+  output?: { type: "image/jpeg" | "image/png"; quality?: number };
 }
 
 export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
@@ -23,6 +25,9 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
   label = "Bulk Select & Arrange Images",
   uploadedImages = [],
   onClearAll,
+  targetSizeMm,
+  dpi = 300,
+  output = { type: "image/png" },
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,22 +44,44 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
       return;
     }
 
-    const readPromises = files.map(
-      (file) =>
-        new Promise<UploadedImage>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () =>
-            resolve({
-              src: reader.result as string,
-              name: file.name,
-              file,
-            });
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        })
-    );
+    const images: UploadedImage[] = [];
+    for (const file of files) {
+      const dataUrl = await readAsDataURL(file);
 
-    const images = await Promise.all(readPromises);
+      // ✅ Rotate if needed before crop
+      let orientedSrc = dataUrl;
+      if (targetSizeMm) {
+        orientedSrc = await rotateIfNeeded(
+          dataUrl,
+          targetSizeMm.width,
+          targetSizeMm.height,
+          dpi
+        );
+      }
+
+      let workingSrc = orientedSrc;
+      let crop: UploadedImage["crop"] | undefined;
+
+      if (targetSizeMm) {
+        const { dataUrl: autoUrl, crop: autoCrop } = await autoCoverCrop(
+          orientedSrc,
+          targetSizeMm,
+          dpi,
+          output
+        );
+        workingSrc = autoUrl;
+        crop = autoCrop;
+      }
+
+      images.push({
+        originalSrc: orientedSrc,
+        src: workingSrc,
+        name: file.name,
+        file,
+        crop,
+      });
+    }
+
     onImagesLoaded(images);
     e.target.value = "";
   };
@@ -99,3 +126,12 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
     </div>
   );
 };
+
+function readAsDataURL(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
