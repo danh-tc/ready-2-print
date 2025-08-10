@@ -8,13 +8,15 @@ export interface SlotImage {
 
 // The crop settings as returned by cropper.getData()
 export interface CropSettings {
-  x: number; // crop left (in image px)
-  y: number; // crop top (in image px)
-  width: number; // crop width (in image px)
-  height: number; // crop height (in image px)
-  rotate: number; // degrees
-  scaleX: number; // usually 1 or -1 (flip)
-  scaleY: number; // usually 1 or -1 (flip)
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotate?: number;
+  scaleX?: number;
+  scaleY?: number;
+  naturalWidth: number;
+  naturalHeight: number;
 }
 
 export interface PaperConfig {
@@ -46,4 +48,12 @@ export interface MetaInfo {
   customerName?: string;
   description?: string;
   date?: string;
+}
+
+export interface UploadedImage {
+  originalSrc: string;
+  src: string; 
+  name: string;
+  file?: File;
+  crop?: CropSettings;
 }
