@@ -98,7 +98,7 @@ export default function LayoutConfigurator() {
             Reset
           </button>
           <Link
-            href="/impose"
+            href="/imposition"
             className="rethink-btn rethink-btn--primary rethink-btn--md"
           >
             Confirm

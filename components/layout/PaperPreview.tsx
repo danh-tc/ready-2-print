@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useMemo } from "react";
 import { calculateGridLayout } from "@/lib/layoutCalculator";
 import { ImageCell } from "./ImageCell";
@@ -16,7 +18,7 @@ interface Props {
   allowSlotImageUpload?: boolean;
   onSlotAddImage?: (slotIdx: number, file: File) => void;
   onSlotRemoveImage?: (slotIdx: number) => void;
-  onSlotEditImage?: (slotIdx: number) => void; 
+  onSlotEditImage?: (slotIdx: number) => void;
 }
 
 export const PaperPreview: React.FC<Props> = ({
@@ -31,10 +33,10 @@ export const PaperPreview: React.FC<Props> = ({
   onSlotRemoveImage,
   onSlotEditImage,
 }) => {
-  const PREVIEW_MAX_W = 500;
+  const PREVIEW_W = 500;
   const aspect = paper.height / paper.width;
-  const previewWidth = PREVIEW_MAX_W;
-  const previewHeight = PREVIEW_MAX_W * aspect;
+  const previewWidth = PREVIEW_W;
+  const previewHeight = PREVIEW_W * aspect;
   const scale = previewWidth / paper.width;
 
   const layout = useMemo(
@@ -62,145 +64,109 @@ export const PaperPreview: React.FC<Props> = ({
   const gridOffsetX = (usableW - gridW) / 2;
   const gridOffsetY = (usableH - gridH) / 2;
 
-  const cells: React.ReactNode[] = [];
-  for (let row = 0; row < layout.rows; row++) {
-    for (let col = 0; col < layout.cols; col++) {
-      const idx = row * layout.cols + col;
-      cells.push(
-        <ImageCell key={`${row}-${col}`} width={cellWidth} height={cellHeight}>
-          {images && images[idx] ? (
-            <div className="img-slot-with-actions">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={images[idx].src}
-                alt={images[idx].name}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-              <div className="slot-actions">
-                <button
-                  className="slot-action-btn slot-action-crop"
-                  title="Crop"
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSlotEditImage?.(idx);
-                  }}
-                >
-                  <Crop size={22} strokeWidth={2} />
-                </button>
-                <button
-                  className="slot-action-btn slot-action-remove"
-                  title="Remove"
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSlotRemoveImage?.(idx);
-                  }}
-                >
-                  <X size={22} strokeWidth={2} />
-                </button>
-              </div>
-            </div>
-          ) : allowSlotImageUpload && onSlotAddImage ? (
-            <label
-              className="img-slot-upload-btn"
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                background: "#f3f5f7",
-                borderRadius: 6,
-              }}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onSlotAddImage(idx, file);
-                }}
-              />
-              <span
-                className="add-icon"
-                style={{ fontSize: "2rem", color: "#7b8c8e" }}
-              >
-                ＋
-              </span>
-            </label>
-          ) : (
-            <div className="img-placeholder" />
-          )}
-        </ImageCell>
-      );
-    }
-  }
-
   return (
     <div
-      className="paper-preview"
+      className="rethink-paper-preview"
       style={{
-        width: previewWidth,
-        height: previewHeight,
-        position: "relative",
-        background: "#f9f9f9",
-        border: "2px solid #888",
-        boxSizing: "border-box",
+        width: previewWidth, // dynamic
+        height: previewHeight, // dynamic
       }}
     >
+      {/* Margin box: top/left/size dynamic */}
       <div
-        className="paper-preview__margin"
+        className="rethink-paper-preview__margin"
         style={{
-          position: "absolute",
           top: margin.top,
           left: margin.left,
           width: previewWidth - margin.left - margin.right,
           height: previewHeight - margin.top - margin.bottom,
-          border: "2px dashed #bbb",
-          boxSizing: "border-box",
         }}
       />
+
+      {/* Grid: position + size + templates/gaps dynamic */}
       <div
-        className="paper-preview__grid"
+        className="rethink-paper-preview__grid"
         style={{
-          position: "absolute",
           top: margin.top + gridOffsetY,
           left: margin.left + gridOffsetX,
           width: gridW,
           height: gridH,
-          display: "grid",
           gridTemplateRows: `repeat(${layout.rows}, ${cellHeight}px)`,
           gridTemplateColumns: `repeat(${layout.cols}, ${cellWidth}px)`,
           gap: `${gap.vertical}px ${gap.horizontal}px`,
         }}
       >
-        {cells}
+        {Array.from({ length: layout.rows }).flatMap((_, r) =>
+          Array.from({ length: layout.cols }).map((__, c) => {
+            const idx = r * layout.cols + c;
+            return (
+              <ImageCell
+                key={`${r}-${c}`}
+                width={cellWidth}
+                height={cellHeight}
+              >
+                {images && images[idx] ? (
+                  <div className="rethink-image-slot">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={images[idx].src} alt={images[idx].name} />
+                    <div className="rethink-image-slot__actions">
+                      <button
+                        className="rethink-image-slot__action-btn rethink-image-slot__action-btn--crop"
+                        title="Crop"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSlotEditImage?.(idx);
+                        }}
+                      >
+                        <Crop size={22} strokeWidth={2} />
+                      </button>
+                      <button
+                        className="rethink-image-slot__action-btn rethink-image-slot__action-btn--remove"
+                        title="Remove"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSlotRemoveImage?.(idx);
+                        }}
+                      >
+                        <X size={22} strokeWidth={2} />
+                      </button>
+                    </div>
+                  </div>
+                ) : allowSlotImageUpload && onSlotAddImage ? (
+                  <label className="rethink-image-slot rethink-image-slot--upload">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) onSlotAddImage(idx, file);
+                      }}
+                    />
+                    <span className="rethink-image-slot__add-icon">＋</span>
+                  </label>
+                ) : (
+                  <div className="rethink-image-slot rethink-image-slot--placeholder" />
+                )}
+              </ImageCell>
+            );
+          })
+        )}
       </div>
+
       {(customerName || date || description) && (
         <div
-          className="paper-preview__meta"
+          className="rethink-paper-preview__meta"
           style={{
-            position: "absolute",
-            left: 0,
-            width: "100%",
-            bottom: 0,
-            height: margin.bottom || 'fit-content',
-            display: "flex",
-            alignItems: "center",
             paddingLeft: margin.left,
             paddingRight: margin.right,
-            color: "#373737",
-            boxSizing: "border-box",
-            zIndex: 3,
-            letterSpacing: "0.02em",
+            height: margin.bottom || "fit-content",
           }}
         >
-          <div style={{ flex: 1, fontWeight: 600 }}>{customerName}</div>
-          <div style={{ flex: 2, textAlign: "center" }}>{description}</div>
-          <div style={{ flex: 1, textAlign: "right" }}>{date}</div>
+          <div className="rethink-paper-preview__meta-left">
+            {date} - {customerName} - {description}
+          </div>
         </div>
       )}
     </div>

@@ -1,33 +1,61 @@
-.paper-preview {
-  background: #f9f9f9;
-  border: 2px solid #888;
+/* Block: rethink-paper-preview */
+.rethink-paper-preview {
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+
+  /* visual polish */
+  background: #f9f9f9;
+  border: 2px solid #888;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
 
   &__margin {
+    position: absolute;
+    border: 2px dashed #bbb;
+    box-sizing: border-box;
     z-index: 1;
   }
 
   &__grid {
+    position: absolute;
+    display: grid; /* static; templates/gaps are inline */
     z-index: 2;
   }
 
   &__meta {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    color: #373737;
+    letter-spacing: 0.02em;
+    font-size: 8px;
     font-family: inherit;
     opacity: 0.96;
-    user-select: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 8px;
+    z-index: 3;
   }
 }
 
-.img-slot-with-actions {
+/* Grid cell content */
+.rethink-image-slot {
   position: relative;
   width: 100%;
   height: 100%;
-  .slot-actions {
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__actions {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -36,42 +64,74 @@
     z-index: 10;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.16s;
+    transition: opacity 0.16s ease;
   }
-  &:hover .slot-actions {
+  &:hover &__actions {
     opacity: 1;
     pointer-events: auto;
   }
-  .slot-action-btn {
+
+  &__action-btn {
     width: 24px;
     height: 24px;
     border: none;
     outline: none;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #e0e1e2;
-    color: #357a58;
+    display: grid;
+    place-items: center;
     font-size: 18px;
     box-shadow: 0 2px 8px #0001;
     cursor: pointer;
-    transition: background 0.18s, color 0.18s;
-  }
-  .slot-action-crop {
-    background: #e0e1e2;
-    color: #357a58;
-    &:hover {
-      background: #eaeaea;
-      color: #219968;
+    transition: background 0.18s ease, color 0.18s ease;
+
+    &--crop {
+      background: #e0e1e2;
+      color: #357a58;
+      &:hover {
+        background: #eaeaea;
+        color: #219968;
+      }
     }
-  }
-  .slot-action-remove {
-    background: #fa5533;
-    color: #fff;
-    &:hover {
-      background: #f34a2b;
+    &--remove {
+      background: #fa5533;
       color: #fff;
+      &:hover {
+        background: #f34a2b;
+        color: #fff;
+      }
     }
+  }
+
+  /* Upload + placeholder hard styles moved from inline */
+  &--upload {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: #f3f5f7;
+    // border-radius: 6px;
+    border: 1px dashed #d7dade;
+
+    input[type="file"] {
+      display: none;
+    }
+    .rethink-image-slot__add-icon {
+      font-size: 2rem;
+      color: #7b8c8e;
+      line-height: 1;
+    }
+
+    &:hover {
+      background: #eef2f6;
+      border-color: #cfd4da;
+    }
+  }
+
+  &--placeholder {
+    width: 100%;
+    height: 100%;
+    background: #eef2f6;
   }
 }
