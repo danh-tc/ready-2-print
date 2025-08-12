@@ -1,3 +1,4 @@
+"use client";
 import "./paper-settings-form.scss";
 
 interface Props {
@@ -12,11 +13,11 @@ interface Props {
 
 export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
   <form className="rethink-paper-settings-form">
-    <h3>Paper Settings</h3>
     <div className="rethink-paper-settings-form__dimensions">
       <label>
-        Width (mm)
+        Paper Width (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.width}
           onChange={(e) =>
@@ -25,8 +26,9 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
         />
       </label>
       <label>
-        Height (mm)
+        Paper Height (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.height}
           onChange={(e) =>
@@ -35,10 +37,12 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
         />
       </label>
     </div>
+
     <div className="rethink-paper-settings-form__margins">
       <label>
         Margin Top (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.margin.top}
           onChange={(e) =>
@@ -52,6 +56,7 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
       <label>
         Margin Right (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.margin.right}
           onChange={(e) =>
@@ -65,6 +70,7 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
       <label>
         Margin Bottom (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.margin.bottom}
           onChange={(e) =>
@@ -78,6 +84,7 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
       <label>
         Margin Left (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.margin.left}
           onChange={(e) =>
@@ -89,10 +96,12 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
         />
       </label>
     </div>
+
     <div className="rethink-paper-settings-form__gap">
       <label>
         Gap Horizontal (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.gap.horizontal}
           onChange={(e) =>
@@ -106,6 +115,7 @@ export const PaperSettingsForm: React.FC<Props> = ({ value, onChange }) => (
       <label>
         Gap Vertical (mm)
         <input
+          className="rethink-input"
           type="number"
           value={value.gap.vertical}
           onChange={(e) =>

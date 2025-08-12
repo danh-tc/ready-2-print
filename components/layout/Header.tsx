@@ -51,11 +51,11 @@ export function Header() {
         </nav>
 
         {/* Right action */}
-        <div className="rethink-header__utils">
+        {/* <div className="rethink-header__utils">
           <button className="rethink-btn rethink-btn--primary rethink-btn--md">
-            Export PDF
+            Rethink Never Ends
           </button>
-        </div>
+        </div> */}
       </div>
     </header>
   );

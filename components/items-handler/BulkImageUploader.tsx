@@ -89,12 +89,12 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
   return (
     <div className="bulk-image-uploader">
       <button
-        className="bulk-image-uploader__soft-btn"
+        className="rethink-btn rethink-btn--outline rethink-btn--md"
         type="button"
         onClick={handleButtonClick}
       >
         <span className="icon-left">
-          <Upload size={20} strokeWidth={2} />
+          <Upload size={14} strokeWidth={2} />
         </span>
         <span className="label">{label}</span>
         {uploadedImages.length > 0 && onClearAll && (

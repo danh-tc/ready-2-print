@@ -124,3 +124,55 @@
     }
   }
 }
+
+/* --- Modern input (shadcn-like) -------------------------------------- */
+input.rethink-input {
+  --bd: #e5e7eb; /* border */
+  --bd-hover: #d0d5dd; /* hover */
+  --bd-focus: #111111; /* focus border */
+  --ring: rgba(17, 17, 17, 0.08);
+
+  width: 100%;
+  height: var(--input-h);
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid var(--bd);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  color: #111;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+
+  &::placeholder {
+    color: #9ca3af;
+  } /* slate-400 */
+
+  &:hover {
+    border-color: var(--bd-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--bd-focus);
+    box-shadow: 0 0 0 3px var(--ring);
+    background: #fff;
+  }
+
+  &:disabled {
+    background: #f5f7fa;
+    color: #98a2b3;
+    cursor: not-allowed;
+  }
+}
+
+/* remove number steppers (keep keyboard arrows) */
+input[type="number"].rethink-input::-webkit-outer-spin-button,
+input[type="number"].rethink-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"].rethink-input {
+  -moz-appearance: textfield;
+}

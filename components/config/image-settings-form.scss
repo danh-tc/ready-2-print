@@ -1,24 +1,36 @@
-.image-settings-form {
+/* Image settings — matches Paper settings look (desktop) */
+.rethink-image-settings-form {
+  --fs-body: 14px;
+  --fs-label: 13px;
+  --input-h: 36px;
+  --radius: 10px;
+
+  /* column layout; rows will wrap */
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
+  min-width: 0;
 
   &__dimensions {
     display: flex;
-    gap: 5px;
-  }
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 16px;
+    row-gap: 12px;
+    min-width: 0;
 
-  h3 {
-    margin: 0 0 8px 0;
-  }
-  label {
-    display: flex;
-    flex-direction: column;
-    font-weight: 500;
-  }
-  input {
-    margin-top: 2px;
-    padding: 3px 6px;
-    font-size: 1em;
+    /* two-up fields that wrap nicely */
+    > label {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 240px;
+      min-width: 220px;
+      max-width: 340px;
+      font-weight: 600;
+      font-size: var(--fs-label);
+      color: #374151; /* slate-700 */
+      gap: 6px;
+      min-inline-size: 0;
+    }
   }
 }

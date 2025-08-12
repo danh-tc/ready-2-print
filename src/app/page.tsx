@@ -1,5 +1,3 @@
-import "@/styles/rethink-foundation.scss";
-import "@/styles/_reset.scss";
 import { Hero } from "@/components/layout/Hero";
 import { BenefitGrid } from "@/components/layout/BenefitGrid";
 
