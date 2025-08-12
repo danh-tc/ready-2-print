@@ -1,6 +1,8 @@
+// components/items-handler/ItemsHandler.tsx
 "use client";
 
-import React, { useState } from "react";
+import "./items-handler.scss";
+import React, { useEffect, useState } from "react";
 import { BulkImageUploader } from "@/components/items-handler/BulkImageUploader";
 import { PaperPreview } from "../layout/PaperPreview";
 import { calculateGridLayout } from "@/lib/layoutCalculator";
@@ -12,16 +14,17 @@ import { CropperModal } from "./CropperModal";
 import { exportImpositionPdf } from "@/lib/exportImpositionPdf";
 import { autoCoverCrop } from "@/lib/autoCoverCrop";
 import { rotateIfNeeded } from "@/lib/rotateIfNeeded";
+import ExportQueueDrawer from "./ExportQueueDrawer";
+import { useExportQueueStore } from "@/store/useExportQueueStore";
 
 export default function ItemsHandler() {
   const [images, setImages] = useState<(UploadedImage | undefined)[]>([]);
   const [currentSheet, setCurrentSheet] = useState(0);
 
-  const image = useImpositionStore((s) => s.image); // slot size in mm
+  const image = useImpositionStore((s) => s.image);
   const paper = useImpositionStore((s) => s.paper);
   const meta = useImpositionStore((s) => s.meta);
 
-  // Calculate grid
   const layout = calculateGridLayout(paper, image);
   const slotsPerSheet = layout.rows * layout.cols;
 
@@ -48,6 +51,21 @@ export default function ItemsHandler() {
     initialCrop?: CropSettings;
   }>({ open: false, slotIdx: null, src: null });
 
+  // ===== Export List (Queue) via Zustand + IndexedDB =====
+  const queueItems = useExportQueueStore((s) => s.items);
+  const hydrateQueue = useExportQueueStore((s) => s.hydrate);
+  const addToQueue = useExportQueueStore((s) => s.add);
+  const removeFromQueue = useExportQueueStore((s) => s.remove);
+  const clearQueue = useExportQueueStore((s) => s.clear);
+  const moveQueue = useExportQueueStore((s) => s.move);
+  const exportAllQueued = useExportQueueStore((s) => s.exportAll);
+
+  const [isQueueOpen, setIsQueueOpen] = useState(false);
+
+  useEffect(() => {
+    hydrateQueue();
+  }, [hydrateQueue]);
+
   // open crop modal — always from original
   const handleSlotEditImage = (slotIdx: number) => {
     const baseIndex = currentSheet * slotsPerSheet;
@@ -56,8 +74,8 @@ export default function ItemsHandler() {
     setCropModal({
       open: true,
       slotIdx,
-      src: img.originalSrc, // ✅ start from original for fresh crop
-      initialCrop: img.crop, // optional (you can ignore if you always reset)
+      src: img.originalSrc,
+      initialCrop: img.crop,
     });
   };
 
@@ -65,21 +83,18 @@ export default function ItemsHandler() {
     const reader = new FileReader();
     reader.onload = async () => {
       const dataUrl = reader.result as string;
-
       const orientedSrc = await rotateIfNeeded(
         dataUrl,
         image.width,
         image.height,
         300
       );
-
       const { dataUrl: autoUrl, crop } = await autoCoverCrop(
         orientedSrc,
         { width: image.width, height: image.height },
         300,
         { type: "image/png" }
       );
-
       const newImage: UploadedImage = {
         originalSrc: orientedSrc,
         src: autoUrl,
@@ -88,9 +103,9 @@ export default function ItemsHandler() {
         crop,
       };
 
-      setImages((prevImages) => {
+      setImages((prev) => {
         const baseIndex = currentSheet * slotsPerSheet;
-        const next = [...prevImages];
+        const next = [...prev];
         while (next.length < baseIndex + slotsPerSheet) next.push(undefined);
         next[baseIndex + slotIdx] = newImage;
         return next;
@@ -100,9 +115,9 @@ export default function ItemsHandler() {
   };
 
   const handleSlotRemoveImage = (slotIdx: number) => {
-    setImages((prevImages) => {
+    setImages((prev) => {
       const baseIndex = currentSheet * slotsPerSheet;
-      const next = [...prevImages];
+      const next = [...prev];
       if (next[baseIndex + slotIdx]) next[baseIndex + slotIdx] = undefined;
       return next;
     });
@@ -113,11 +128,11 @@ export default function ItemsHandler() {
     setCurrentSheet(0);
   };
 
-  const handleExportPdf = async () => {
+  const buildCurrentPdfBytes = async () => {
     const pdfBytes = await exportImpositionPdf({
       paper,
       image,
-      sheets, // all pages
+      sheets,
       layout,
       customerName: meta.customerName,
       description: meta.description,
@@ -126,7 +141,34 @@ export default function ItemsHandler() {
       cutMarkThicknessPt: 0.7,
       cutMarkColor: { r: 0, g: 0, b: 0 },
     });
+    return pdfBytes;
+  };
+
+  const handleExportPdf = async () => {
+    const pdfBytes = await buildCurrentPdfBytes();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  };
+
+  const handleAddToExportList = async () => {
+    const pdfBytes = await buildCurrentPdfBytes();
+
+    const { PDFDocument } = await import("pdf-lib");
+    const doc = await PDFDocument.load(pdfBytes);
+    const pageCount = doc.getPageCount();
+
+    const name = meta.customerName?.trim() || `Job ${queueItems.length + 1}`;
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+
+    await addToQueue(name, pageCount, blob);
+    setIsQueueOpen(true);
+  };
+
+  const handleExportAll = async () => {
+    const merged = await exportAllQueued();
+    if (!merged) return;
+    const blob = new Blob([merged], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank");
   };
@@ -134,50 +176,106 @@ export default function ItemsHandler() {
   const hydrated = useHydrated();
   if (!hydrated) return null;
 
+  const queueView = queueItems.map((i) => ({
+    id: i.id,
+    name: i.name,
+    pageCount: i.pageCount,
+    createdAt: i.createdAt,
+  }));
+
   return (
-    <div>
-      <BulkImageUploader
-        onImagesLoaded={(newImgs) => {
-          // append to existing grid slots (left-to-right)
-          setImages((prev) => {
-            const merged = [...prev];
-            for (let i = 0; i < newImgs.length; i++) {
-              // find first empty slot
-              const emptyIndex = merged.findIndex((x) => x === undefined);
-              if (emptyIndex !== -1) merged[emptyIndex] = newImgs[i];
-              else merged.push(newImgs[i]);
-            }
-            return merged;
-          });
-        }}
-        maxImages={30}
-        label="Upload your images"
-        uploadedImages={images}
-        onClearAll={handleClearAllUploadedImages}
-        // NEW: tell uploader the slot size so it can auto-cover
-        targetSizeMm={{ width: image.width, height: image.height }}
-        dpi={300}
-        output={{ type: "image/png" }} // or JPEG for smaller PDFs
-      />
+    <div className="rethink-items rethink-container">
+      <div className="rethink-toolbar">
+        <div className="rethink-toolbar__left">
+          <BulkImageUploader
+            onImagesLoaded={(newImgs) => {
+              setImages((prev) => {
+                const merged = [...prev];
+                for (let i = 0; i < newImgs.length; i++) {
+                  const emptyIndex = merged.findIndex((x) => x === undefined);
+                  if (emptyIndex !== -1) merged[emptyIndex] = newImgs[i];
+                  else merged.push(newImgs[i]);
+                }
+                return merged;
+              });
+            }}
+            maxImages={30}
+            label="Upload your images"
+            uploadedImages={images}
+            onClearAll={handleClearAllUploadedImages}
+            targetSizeMm={{ width: image.width, height: image.height }}
+            dpi={300}
+            output={{ type: "image/png" }}
+          />
+          <div className="rethink-status-line">
+            Uploaded: {images.filter(Boolean).length}/30 · Queued:{" "}
+            {queueItems.length}
+          </div>
+        </div>
 
-      <SheetPaginator
-        totalSheets={sheets.length}
-        currentSheet={currentSheet}
-        onChange={setCurrentSheet}
-      />
+        <div className="rethink-toolbar__right">
+          <button
+            className="rethink-btn rethink-btn--outline rethink-btn--sm"
+            onClick={() => setIsQueueOpen((v) => !v)}
+            aria-pressed={isQueueOpen}
+            title="Open Export List"
+          >
+            Queue ({queueItems.length})
+          </button>
+          <button
+            className="rethink-btn rethink-btn--outline rethink-btn--md"
+            onClick={handleAddToExportList}
+            title="Generate current PDF and add to export list"
+          >
+            Add to Export List
+          </button>
+          <button
+            className="rethink-btn rethink-btn--primary rethink-btn--md"
+            onClick={handleExportPdf}
+            title="Export current job (all sheets)"
+          >
+            Export Current
+          </button>
+          <button
+            className="rethink-btn rethink-btn--outline rethink-btn--md"
+            onClick={handleExportAll}
+            disabled={!queueItems.length}
+            title="Merge all queued PDFs into one file"
+          >
+            Export All
+          </button>
+        </div>
+      </div>
 
-      <PaperPreview
-        paper={paper}
-        image={image}
-        customerName={meta.customerName}
-        description={meta.description}
-        images={sheets[currentSheet] || []}
-        date={meta.date}
-        allowSlotImageUpload
-        onSlotAddImage={handleSlotAddImage}
-        onSlotRemoveImage={handleSlotRemoveImage}
-        onSlotEditImage={handleSlotEditImage}
-      />
+      <div className="rethink-paginator-row">
+        <SheetPaginator
+          totalSheets={sheets.length}
+          currentSheet={currentSheet}
+          onChange={setCurrentSheet}
+        />
+      </div>
+
+      <div className="rethink-paper">
+        <div className="rethink-paper__chip">
+          {layout.cols}×{layout.rows} · {paper.width}×{paper.height}mm · Gap{" "}
+          {paper.gap.horizontal}/{paper.gap.vertical}mm · Margin{" "}
+          {paper.margin.top}/{paper.margin.right}/{paper.margin.bottom}/
+          {paper.margin.left}mm
+        </div>
+
+        <PaperPreview
+          paper={paper}
+          image={image}
+          customerName={meta.customerName}
+          description={meta.description}
+          images={sheets[currentSheet] || []}
+          date={meta.date}
+          allowSlotImageUpload
+          onSlotAddImage={handleSlotAddImage}
+          onSlotRemoveImage={handleSlotRemoveImage}
+          onSlotEditImage={handleSlotEditImage}
+        />
+      </div>
 
       {cropModal.open && cropModal.src && (
         <CropperModal
@@ -193,10 +291,9 @@ export default function ItemsHandler() {
             const next = [...images];
             const old = next[baseIndex + cropModal.slotIdx];
             if (!old) return;
-
             next[baseIndex + cropModal.slotIdx] = {
               ...old,
-              src: dataUrl, // replace working image with user crop
+              src: dataUrl,
               crop,
             };
             setImages(next);
@@ -205,7 +302,15 @@ export default function ItemsHandler() {
         />
       )}
 
-      <button onClick={handleExportPdf}>Export PDF</button>
+      <ExportQueueDrawer
+        open={isQueueOpen}
+        items={queueView}
+        onClose={() => setIsQueueOpen(false)}
+        onExportAll={handleExportAll}
+        onClear={clearQueue}
+        onMove={moveQueue}
+        onRemove={removeFromQueue}
+      />
     </div>
   );
 }
