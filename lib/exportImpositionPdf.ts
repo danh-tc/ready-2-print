@@ -181,8 +181,8 @@ export async function exportImpositionPdf({
         `${customerName ?? ""}   ${description ?? ""}   ${date ?? ""}`,
         {
           x: mmToPt(10),
-          y: mmToPt(5),
-          size: 10,
+          y: mmToPt(7),
+          size: 15,
         }
       );
     }
