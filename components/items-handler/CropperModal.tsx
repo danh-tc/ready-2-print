@@ -1,6 +1,7 @@
+// components/items-handler/CropperModal.tsx
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import Cropper, { ReactCropperElement } from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import "./cropper-modal.scss";
@@ -13,17 +14,23 @@ import {
   Undo2,
   X,
   Check,
+  Minimize2,
+  Maximize2,
+  Crosshair,
 } from "lucide-react";
-import { CropSettings } from "@/types/types";
-import { ImageConfig } from "@/types/types";
+import { CropSettings, ImageConfig } from "@/types/types";
 
 interface CropperModalProps {
   imageData: ImageConfig;
   isOpen: boolean;
   imageSrc: string;
+  dpi?: number;
   onClose: () => void;
   onConfirm: (result: { dataUrl: string; crop: CropSettings }) => void;
 }
+
+const MM_PER_INCH = 25.4;
+const DPI_DEFAULT = 300;
 
 export const CropperModal: React.FC<CropperModalProps> = ({
   isOpen,
@@ -31,10 +38,28 @@ export const CropperModal: React.FC<CropperModalProps> = ({
   onClose,
   onConfirm,
   imageData,
+  dpi = DPI_DEFAULT,
 }) => {
   const cropperRef = useRef<ReactCropperElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
+
+  const { innerWmm, innerHmm, aspectRatio, targetPxW, targetPxH } =
+    useMemo(() => {
+      const m = imageData.margin ?? { top: 0, right: 0, bottom: 0, left: 0 };
+      const w = Math.max(0.1, imageData.width - (m.left + m.right));
+      const h = Math.max(0.1, imageData.height - (m.top + m.bottom));
+      const ratio = w / h;
+      const pxW = Math.max(1, Math.round((w / MM_PER_INCH) * dpi));
+      const pxH = Math.max(1, Math.round((h / MM_PER_INCH) * dpi));
+      return {
+        innerWmm: w,
+        innerHmm: h,
+        aspectRatio: ratio,
+        targetPxW: pxW,
+        targetPxH: pxH,
+      };
+    }, [imageData, dpi]);
 
   useEffect(() => {
     if (isOpen) setLoaded(false);
@@ -50,36 +75,101 @@ export const CropperModal: React.FC<CropperModalProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node))
         onClose();
-      }
     };
     if (isOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose]);
 
-  const zoomIn = () => cropperRef.current?.cropper.zoom(0.1);
-  const zoomOut = () => cropperRef.current?.cropper.zoom(-0.1);
-  const rotateLeft = () => cropperRef.current?.cropper.rotate(-90);
-  const rotateRight = () => cropperRef.current?.cropper.rotate(90);
+  const cropper = () => cropperRef.current?.cropper;
+
+  const centerCanvas = () => {
+    const c = cropper();
+    if (!c) return;
+    const cb = c.getCropBoxData();
+    const cd = c.getCanvasData();
+    const left = Math.round(cb.left + (cb.width - cd.width) / 2);
+    const top = Math.round(cb.top + (cb.height - cd.height) / 2);
+    c.setCanvasData({ ...cd, left, top });
+  };
+
+  const zoomIn = () => cropper()?.zoom(0.1);
+  const zoomOut = () => cropper()?.zoom(-0.1);
+  const rotateLeft = () => cropper()?.rotate(-90);
+  const rotateRight = () => cropper()?.rotate(90);
   const reset = () => {
-    const cropper = cropperRef.current?.cropper;
-    if (!cropper) return;
-    cropper.reset();
-    cropper.clear();
-    cropper.crop();
+    const c = cropper();
+    if (!c) return;
+    c.reset();
+    c.clear();
+    c.crop();
+    requestAnimationFrame(() => {
+      fillInset(); // re-apply default fill
+    });
+  };
+
+  // Fit/Fill helpers
+  const getContainCoverRatios = () => {
+    const c = cropper();
+    if (!c) return { contain: 1, cover: 1 };
+    const cb = c.getCropBoxData();
+    const id = c.getImageData();
+    // Adjust for rotation (90/270 swaps natural dimensions)
+    const rot = Math.abs((c.getData().rotate || 0) % 180) === 90;
+    const nW = rot ? id.naturalHeight : id.naturalWidth;
+    const nH = rot ? id.naturalWidth : id.naturalHeight;
+    const contain = Math.min(cb.width / nW, cb.height / nH);
+    const cover = Math.max(cb.width / nW, cb.height / nH);
+    return { contain, cover };
+  };
+
+  const fitInset = () => {
+    const c = cropper();
+    if (!c) return;
+    const cb = c.getCropBoxData();
+    const { contain } = getContainCoverRatios();
+    // Zoom around the crop-box center so the image doesn't drift
+    c.zoomTo(contain, { x: cb.left + cb.width / 2, y: cb.top + cb.height / 2 });
+    // Then hard-center canvas (some browsers still keep previous left/top)
+    requestAnimationFrame(centerCanvas);
+  };
+
+  const fillInset = () => {
+    const c = cropper();
+    if (!c) return;
+    const cb = c.getCropBoxData();
+    const { cover } = getContainCoverRatios();
+    c.zoomTo(cover, { x: cb.left + cb.width / 2, y: cb.top + cb.height / 2 });
+    requestAnimationFrame(centerCanvas);
+  };
+
+  const centerImage = () => {
+    centerCanvas();
+  };
+
+  const handleReady = () => {
+    setLoaded(true);
+    requestAnimationFrame(() => {
+      fillInset(); // default to "cover" and center
+    });
   };
 
   const handleConfirm = () => {
-    const cropper = cropperRef.current?.cropper;
-    if (!cropper) return;
-
-    const canvas = cropper.getCroppedCanvas();
+    const c = cropper();
+    if (!c) return;
+    const canvas = c.getCroppedCanvas({
+      width: targetPxW,
+      height: targetPxH,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: "high",
+      fillColor: "#ffffff",
+    });
     if (!canvas) return;
 
     const dataUrl = canvas.toDataURL("image/png");
-    const data = cropper.getData();
-    const imageData = cropper.getImageData();
+    const data = c.getData();
+    const imgData = c.getImageData();
 
     const crop: CropSettings = {
       x: data.x,
@@ -89,8 +179,8 @@ export const CropperModal: React.FC<CropperModalProps> = ({
       rotate: data.rotate,
       scaleX: data.scaleX,
       scaleY: data.scaleY,
-      naturalWidth: imageData.naturalWidth,
-      naturalHeight: imageData.naturalHeight,
+      naturalWidth: imgData.naturalWidth,
+      naturalHeight: imgData.naturalHeight,
     };
 
     onConfirm({ dataUrl, crop });
@@ -107,7 +197,8 @@ export const CropperModal: React.FC<CropperModalProps> = ({
             Cancel
           </button>
           <div className="cropper-title">
-            Your image size (W/H): {imageData.width}mm / {imageData.height}mm
+            Inner area (W/H): {innerWmm.toFixed(1)}mm / {innerHmm.toFixed(1)}mm
+            · DPI {dpi}
           </div>
           <button
             className="btn-icon confirm"
@@ -123,31 +214,42 @@ export const CropperModal: React.FC<CropperModalProps> = ({
           <Cropper
             src={imageSrc}
             style={{ height: 400, width: "100%" }}
-            aspectRatio={imageData.width / imageData.height}
+            aspectRatio={aspectRatio}
             guides
-            viewMode={1}
+            viewMode={0}
             dragMode="move"
             autoCropArea={1}
             background={false}
             responsive
             checkOrientation={false}
-            ready={() => setLoaded(true)}
+            cropBoxMovable={false}
+            cropBoxResizable={false}
+            ready={handleReady}
             ref={cropperRef}
           />
         </div>
 
         <div className="cropper-toolbar">
+          <button onClick={rotateLeft}>
+            <RotateCcw size={20} /> Rotate Left
+          </button>
+          <button onClick={rotateRight}>
+            <RotateCw size={20} /> Rotate Right
+          </button>
           <button onClick={zoomOut}>
             <ZoomOut size={20} /> Shrink
           </button>
           <button onClick={zoomIn}>
             <ZoomIn size={20} /> Enlarge
           </button>
-          <button onClick={rotateLeft}>
-            <RotateCcw size={20} /> Rotate Left
+          <button onClick={fitInset} title="Contain: show entire image">
+            <Minimize2 size={20} /> Fit
           </button>
-          <button onClick={rotateRight}>
-            <RotateCw size={20} /> Rotate Right
+          <button onClick={fillInset} title="Cover: fill inset without gaps">
+            <Maximize2 size={20} /> Fill
+          </button>
+          <button onClick={centerImage} title="Center image in frame">
+            <Crosshair size={20} /> Center
           </button>
           <button onClick={reset}>
             <Undo2 size={20} /> Reset

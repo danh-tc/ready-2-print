@@ -1,4 +1,3 @@
-// components/items-handler/ItemsHandler.tsx
 "use client";
 
 import "./items-handler.scss";
@@ -89,12 +88,16 @@ export default function ItemsHandler() {
         image.height,
         300
       );
+
+      // ⬇️ Pass per-image margins to align with preview/export
       const { dataUrl: autoUrl, crop } = await autoCoverCrop(
         orientedSrc,
         { width: image.width, height: image.height },
         300,
-        { type: "image/png" }
+        { type: "image/png" },
+        image.margin // << include margin
       );
+
       const newImage: UploadedImage = {
         originalSrc: orientedSrc,
         src: autoUrl,
@@ -280,6 +283,7 @@ export default function ItemsHandler() {
       {cropModal.open && cropModal.src && (
         <CropperModal
           imageData={image}
+          dpi={300} // ⬅️ ensure cropped canvas matches inner target pixel size
           isOpen={cropModal.open}
           imageSrc={cropModal.src}
           onClose={() =>

@@ -32,9 +32,17 @@ export interface PaperConfig {
   };
 }
 
+export type ImageMargin = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 export interface ImageConfig {
-  width: number;
-  height: number;
+  width: number;   // mm
+  height: number;  // mm
+  margin: ImageMargin; // per-image inner whitespace (mm)
 }
 
 export interface LayoutConfig {
