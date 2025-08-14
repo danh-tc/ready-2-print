@@ -44,7 +44,7 @@ export const PaperPreview: React.FC<Props> = ({
     [paper, image]
   );
 
-  const margin = {
+  const paperMargin = {
     top: paper.margin.top * scale,
     right: paper.margin.right * scale,
     bottom: paper.margin.bottom * scale,
@@ -54,11 +54,23 @@ export const PaperPreview: React.FC<Props> = ({
     horizontal: paper.gap.horizontal * scale,
     vertical: paper.gap.vertical * scale,
   };
+
   const cellWidth = image.width * scale;
   const cellHeight = image.height * scale;
 
-  const usableW = previewWidth - margin.left - margin.right;
-  const usableH = previewHeight - margin.top - margin.bottom;
+  const imgMarginPx = {
+    top: (image.margin?.top ?? 0) * scale,
+    right: (image.margin?.right ?? 0) * scale,
+    bottom: (image.margin?.bottom ?? 0) * scale,
+    left: (image.margin?.left ?? 0) * scale,
+  };
+
+  // Inset frame size inside each cell
+  const insetW = Math.max(0, cellWidth - imgMarginPx.left - imgMarginPx.right);
+  const insetH = Math.max(0, cellHeight - imgMarginPx.top - imgMarginPx.bottom);
+
+  const usableW = previewWidth - paperMargin.left - paperMargin.right;
+  const usableH = previewHeight - paperMargin.top - paperMargin.bottom;
   const gridW = layout.cols * cellWidth + (layout.cols - 1) * gap.horizontal;
   const gridH = layout.rows * cellHeight + (layout.rows - 1) * gap.vertical;
   const gridOffsetX = (usableW - gridW) / 2;
@@ -67,28 +79,25 @@ export const PaperPreview: React.FC<Props> = ({
   return (
     <div
       className="rethink-paper-preview"
-      style={{
-        width: previewWidth, // dynamic
-        height: previewHeight, // dynamic
-      }}
+      style={{ width: previewWidth, height: previewHeight }}
     >
-      {/* Margin box: top/left/size dynamic */}
+      {/* Paper margin box */}
       <div
         className="rethink-paper-preview__margin"
         style={{
-          top: margin.top,
-          left: margin.left,
-          width: previewWidth - margin.left - margin.right,
-          height: previewHeight - margin.top - margin.bottom,
+          top: paperMargin.top,
+          left: paperMargin.left,
+          width: previewWidth - paperMargin.left - paperMargin.right,
+          height: previewHeight - paperMargin.top - paperMargin.bottom,
         }}
       />
 
-      {/* Grid: position + size + templates/gaps dynamic */}
+      {/* Grid container */}
       <div
         className="rethink-paper-preview__grid"
         style={{
-          top: margin.top + gridOffsetY,
-          left: margin.left + gridOffsetX,
+          top: paperMargin.top + gridOffsetY,
+          left: paperMargin.left + gridOffsetX,
           width: gridW,
           height: gridH,
           gridTemplateRows: `repeat(${layout.rows}, ${cellHeight}px)`,
@@ -99,16 +108,51 @@ export const PaperPreview: React.FC<Props> = ({
         {Array.from({ length: layout.rows }).flatMap((_, r) =>
           Array.from({ length: layout.cols }).map((__, c) => {
             const idx = r * layout.cols + c;
+            const hasImage = !!images?.[idx];
+
             return (
               <ImageCell
                 key={`${r}-${c}`}
                 width={cellWidth}
                 height={cellHeight}
               >
-                {images && images[idx] ? (
-                  <div className="rethink-image-slot">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={images[idx].src} alt={images[idx].name} />
+                <div className="rethink-image-slot">
+                  {/* Inner frame (reflects per-image margin) */}
+                  <div
+                    className="rethink-image-slot__inset"
+                    style={{
+                      top: imgMarginPx.top,
+                      left: imgMarginPx.left,
+                      width: insetW,
+                      height: insetH,
+                    }}
+                  >
+                    {hasImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={images![idx]!.src}
+                        alt={images![idx]!.name}
+                        className="rethink-image-slot__img"
+                      />
+                    ) : allowSlotImageUpload && onSlotAddImage ? (
+                      <label className="rethink-image-slot__upload">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onSlotAddImage(idx, file);
+                          }}
+                        />
+                        <span className="rethink-image-slot__add-icon">＋</span>
+                      </label>
+                    ) : (
+                      <div className="rethink-image-slot__placeholder" />
+                    )}
+                  </div>
+
+                  {/* Actions overlay (sticks to outer cell edge) */}
+                  {hasImage && (
                     <div className="rethink-image-slot__actions">
                       <button
                         className="rethink-image-slot__action-btn rethink-image-slot__action-btn--crop"
@@ -119,7 +163,7 @@ export const PaperPreview: React.FC<Props> = ({
                           onSlotEditImage?.(idx);
                         }}
                       >
-                        <Crop size={22} strokeWidth={2} />
+                        <Crop size={18} strokeWidth={2} />
                       </button>
                       <button
                         className="rethink-image-slot__action-btn rethink-image-slot__action-btn--remove"
@@ -130,25 +174,11 @@ export const PaperPreview: React.FC<Props> = ({
                           onSlotRemoveImage?.(idx);
                         }}
                       >
-                        <X size={22} strokeWidth={2} />
+                        <X size={18} strokeWidth={2} />
                       </button>
                     </div>
-                  </div>
-                ) : allowSlotImageUpload && onSlotAddImage ? (
-                  <label className="rethink-image-slot rethink-image-slot--upload">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) onSlotAddImage(idx, file);
-                      }}
-                    />
-                    <span className="rethink-image-slot__add-icon">＋</span>
-                  </label>
-                ) : (
-                  <div className="rethink-image-slot rethink-image-slot--placeholder" />
-                )}
+                  )}
+                </div>
               </ImageCell>
             );
           })
@@ -159,9 +189,9 @@ export const PaperPreview: React.FC<Props> = ({
         <div
           className="rethink-paper-preview__meta"
           style={{
-            paddingLeft: margin.left,
-            paddingRight: margin.right,
-            height: margin.bottom || "fit-content",
+            paddingLeft: paperMargin.left,
+            paddingRight: paperMargin.right,
+            height: paperMargin.bottom || "fit-content",
           }}
         >
           <div className="rethink-paper-preview__meta-left">

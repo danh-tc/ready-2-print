@@ -1,3 +1,4 @@
+// lib/exportImpositionPdf.ts
 import { PDFDocument, rgb } from "pdf-lib";
 
 // mm to points helper
@@ -15,7 +16,7 @@ interface Gap {
 }
 interface ExportImpositionPdfParams {
   paper: { width: number; height: number; margin: Margin; gap: Gap };
-  image: { width: number; height: number };
+  image: { width: number; height: number; margin?: Margin }; // ⬅️ added optional per-image margin
   sheets: Array<Array<{ src: string } | undefined>>; // Each sheet = array of images
   layout: { rows: number; cols: number };
   customerName?: string;
@@ -111,11 +112,29 @@ export async function exportImpositionPdf({
     (cutMarkColor.b ?? 0) / 255
   );
 
+  // Per-image margins (mm)
+  const imgMargin = {
+    top: image.margin?.top ?? 0,
+    right: image.margin?.right ?? 0,
+    bottom: image.margin?.bottom ?? 0,
+    left: image.margin?.left ?? 0,
+  };
+
+  // Inner (effective) image area in mm
+  const innerMmW = Math.max(
+    0,
+    image.width - (imgMargin.left + imgMargin.right)
+  );
+  const innerMmH = Math.max(
+    0,
+    image.height - (imgMargin.top + imgMargin.bottom)
+  );
+
   for (let sheetIdx = 0; sheetIdx < sheets.length; sheetIdx++) {
     const page = pdfDoc.addPage([mmToPt(paper.width), mmToPt(paper.height)]);
     const images = sheets[sheetIdx];
 
-    // --- Centering calculations ---
+    // --- Centering calculations for the grid (in mm) ---
     const usableWidth = paper.width - paper.margin.left - paper.margin.right;
     const usableHeight = paper.height - paper.margin.top - paper.margin.bottom;
     const gridWidth =
@@ -131,15 +150,22 @@ export async function exportImpositionPdf({
         const img = images[idx];
         if (!img) continue;
 
-        const x = mmToPt(
+        // Slot (outer cell) origin in points (bottom-left)
+        const slotXPt = mmToPt(
           gridOffsetX + col * (image.width + paper.gap.horizontal)
         );
-        // PDF-lib's origin is bottom-left
-        const y = mmToPt(
+        const slotYPt = mmToPt(
           paper.height -
             (gridOffsetY + (row + 1) * image.height + row * paper.gap.vertical)
         );
 
+        // Inner (inset) rect inside the slot (respect image margins)
+        const insetXPt = slotXPt + mmToPt(imgMargin.left);
+        const insetYPt = slotYPt + mmToPt(imgMargin.bottom);
+        const insetWPt = mmToPt(innerMmW);
+        const insetHPt = mmToPt(innerMmH);
+
+        // Load and embed image
         const imageBytes = await fetch(img.src).then((r) => r.arrayBuffer());
 
         let pdfImage;
@@ -154,18 +180,19 @@ export async function exportImpositionPdf({
           throw new Error("Unsupported image format: must be PNG or JPEG");
         }
 
+        // Draw the image sized to the INNER rect (autoCoverCrop already matched the ratio)
         page.drawImage(pdfImage, {
-          x,
-          y,
-          width: mmToPt(image.width),
-          height: mmToPt(image.height),
+          x: insetXPt,
+          y: insetYPt,
+          width: insetWPt,
+          height: insetHPt,
         });
 
-        // 👉 Draw cut marks (point cuts) for this slot
+        // Draw cut marks at the OUTER slot bounds (unchanged)
         drawCutMarks(
           page,
-          x,
-          y,
+          slotXPt,
+          slotYPt,
           mmToPt(image.width),
           mmToPt(image.height),
           mmToPt(cutMarkLengthMm),

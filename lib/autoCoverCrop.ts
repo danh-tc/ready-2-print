@@ -16,10 +16,14 @@ export interface AutoCoverCropResult {
 
 /**
  * Auto-crop an image like CSS object-fit: cover, centered.
+ * Supports optional per-image margins: the crop will match the *inner* target area
+ * (target - margins) so it aligns with your preview/export inset.
+ *
  * @param src DataURL or URL of the original image
- * @param targetMm Target slot size in mm
+ * @param targetMm Target slot size in mm (outer cell)
  * @param dpi Export DPI (default 300)
  * @param output e.g. { type:'image/jpeg', quality:0.9 } or { type:'image/png' }
+ * @param marginMm Optional per-image margin in mm (top/right/bottom/left)
  */
 export async function autoCoverCrop(
   src: string,
@@ -27,13 +31,25 @@ export async function autoCoverCrop(
   dpi = 300,
   output: { type: "image/jpeg" | "image/png"; quality?: number } = {
     type: "image/png",
-  }
+  },
+  marginMm?: { top: number; right: number; bottom: number; left: number }
 ): Promise<AutoCoverCropResult> {
   const img = await loadImage(src);
   const naturalW = img.naturalWidth;
   const naturalH = img.naturalHeight;
-  const targetPxW = Math.max(1, Math.round((targetMm.width / 25.4) * dpi));
-  const targetPxH = Math.max(1, Math.round((targetMm.height / 25.4) * dpi));
+
+  // Compute inner (effective) target area by subtracting margins (in mm)
+  const mTop = marginMm?.top ?? 0;
+  const mRight = marginMm?.right ?? 0;
+  const mBottom = marginMm?.bottom ?? 0;
+  const mLeft = marginMm?.left ?? 0;
+
+  const innerMmW = Math.max(0.1, targetMm.width - (mLeft + mRight));
+  const innerMmH = Math.max(0.1, targetMm.height - (mTop + mBottom));
+
+  // Convert inner target to print pixels
+  const targetPxW = Math.max(1, Math.round((innerMmW / 25.4) * dpi));
+  const targetPxH = Math.max(1, Math.round((innerMmH / 25.4) * dpi));
 
   const imgRatio = naturalW / naturalH;
   const targetRatio = targetPxW / targetPxH;
@@ -43,6 +59,7 @@ export async function autoCoverCrop(
     sy = 0,
     sw = naturalW,
     sh = naturalH;
+
   if (imgRatio > targetRatio) {
     // Image is wider: crop width to match target ratio
     sw = Math.round(naturalH * targetRatio);
@@ -57,7 +74,7 @@ export async function autoCoverCrop(
     sw = naturalW;
   }
 
-  // Draw into a canvas of target print pixels
+  // Draw into a canvas of INNER print pixels (aligns with inset area)
   const canvas = document.createElement("canvas");
   canvas.width = targetPxW;
   canvas.height = targetPxH;
@@ -70,7 +87,7 @@ export async function autoCoverCrop(
       ? canvas.toDataURL("image/jpeg", output.quality ?? 0.9)
       : canvas.toDataURL("image/png");
 
-  // Crop settings in original pixel space (like Cropper's getData)
+  // Crop settings in original pixel space
   const crop = {
     x: sx,
     y: sy,

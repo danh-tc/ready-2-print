@@ -3,9 +3,6 @@ import { ImageConfig, PaperConfig } from "@/types/types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-
-
-
 export type MetaInfo = {
   customerName: string;
   date: string;
@@ -23,31 +20,25 @@ interface ImpositionState {
   setDisplayMeta: (displayMeta: boolean) => void;
 }
 
-// export const useImpositionStore = create<ImpositionState>((set) => ({
-//   paper: {
-//     width: 297,
-//     height: 210,
-//     margin: { top: 10, right: 10, bottom: 10, left: 10 },
-//     gap: { horizontal: 3, vertical: 3 },
-//   },
-//   setPaper: (paper) => set({ paper }),
-//   image: { width: 30, height: 40 },
-//   setImage: (image) => set({ image }),
-//   meta: { customerName: "", date: getTodayString(), description: "" },
-//   setMeta: (meta) => set({ meta }),
-// }));
+const defaultImage: ImageConfig = {
+  width: 57,
+  height: 92,
+  margin: { top: 0, right: 0, bottom: 0, left: 0 },
+};
+
+const defaultPaper: PaperConfig = {
+  width: 297,
+  height: 210,
+  margin: { top: 0, right: 0, bottom: 0, left: 0 },
+  gap: { horizontal: 0, vertical: 0 },
+};
 
 export const useImpositionStore = create<ImpositionState>()(
   persist(
     (set) => ({
-      paper: {
-        width: 297,
-        height: 210,
-        margin: { top: 5, right: 5, bottom: 5, left: 5 },
-        gap: { horizontal: 3, vertical: 3 },
-      },
+      paper: defaultPaper,
       setPaper: (paper) => set({ paper }),
-      image: { width: 30, height: 40 },
+      image: defaultImage,
       setImage: (image) => set({ image }),
       meta: { customerName: "", date: getTodayString(), description: "" },
       setMeta: (meta) => set({ meta }),

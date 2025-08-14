@@ -1,3 +1,5 @@
+"use client";
+
 import "./image-cell.scss";
 
 interface Props {
@@ -12,9 +14,9 @@ export const ImageCell: React.FC<Props> = ({ width, height, children }) => (
     style={{
       width,
       height,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
+      position: "relative",
+      // visual outer frame (slot)
+      boxSizing: "border-box",
     }}
   >
     {children}

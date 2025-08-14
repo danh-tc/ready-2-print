@@ -1,3 +1,4 @@
+
 /* Block: rethink-paper-preview */
 .rethink-paper-preview {
   position: relative;
@@ -42,19 +43,35 @@
   }
 }
 
-/* Grid cell content */
+/* Grid cell content (outer slot fills the cell) */
 .rethink-image-slot {
   position: relative;
   width: 100%;
   height: 100%;
 
-  img {
+  /* Inner frame that respects per-image margins (set via inline styles) */
+  &__inset {
+    position: absolute; /* top/left/width/height are injected inline */
+    box-sizing: border-box;
+    border: 1px dashed green; /* visual frame of the effective image area */
+    background: #fff;
+    overflow: hidden; /* clip image to the frame */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+  }
+
+  /* Image always fits inside the inset while preserving ratio */
+  img,
+  &__inset > img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
+  /* Actions overlay (sticks to outer cell edge) */
   &__actions {
     position: absolute;
     top: 8px;
@@ -102,7 +119,8 @@
     }
   }
 
-  /* Upload + placeholder hard styles moved from inline */
+  /* Upload + placeholder INSIDE the inset so margins are respected */
+  &__upload,
   &--upload {
     width: 100%;
     height: 100%;
@@ -111,8 +129,7 @@
     justify-content: center;
     cursor: pointer;
     background: #f3f5f7;
-    // border-radius: 6px;
-    border: 1px dashed #d7dade;
+    border: 0; /* no extra border; inset already has a frame */
 
     input[type="file"] {
       display: none;
@@ -125,10 +142,10 @@
 
     &:hover {
       background: #eef2f6;
-      border-color: #cfd4da;
     }
   }
 
+  &__placeholder,
   &--placeholder {
     width: 100%;
     height: 100%;
