@@ -1,9 +1,18 @@
+/* Centering wrapper (keeps preview centered in the page section) */
+.rethink-paper-preview-wrap {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  min-height: 50dvh;
+  padding: 8px 0;
+}
 
 /* Block: rethink-paper-preview */
 .rethink-paper-preview {
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  margin: 0 auto;
 
   /* visual polish */
   background: #f9f9f9;
@@ -20,7 +29,7 @@
 
   &__grid {
     position: absolute;
-    display: grid; /* static; templates/gaps are inline */
+    display: grid; /* templates/gaps injected inline */
     z-index: 2;
   }
 
@@ -43,26 +52,34 @@
   }
 }
 
-/* Grid cell content (outer slot fills the cell) */
+/* Grid cell content */
 .rethink-image-slot {
   position: relative;
   width: 100%;
   height: 100%;
 
-  /* Inner frame that respects per-image margins (set via inline styles) */
+  /* Auto-scaling controls based on the smaller cell dimension */
+  --btn-size: clamp(
+    20px,
+    calc(min(var(--cell-w, 0px), var(--cell-h, 0px)) * 0.15),
+    44px
+  );
+  --icon-size: calc(var(--btn-size) * 0.65);
+  --btn-gap: calc(var(--btn-size) * 0.25);
+  --btn-offset: clamp(4px, calc(var(--btn-size) * 0.33), 12px);
+
   &__inset {
-    position: absolute; /* top/left/width/height are injected inline */
+    position: absolute; /* top/left/width/height inline */
     box-sizing: border-box;
-    border: 1px dashed green; /* visual frame of the effective image area */
+    border: 1px dashed green;
     background: #fff;
-    overflow: hidden; /* clip image to the frame */
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 0;
   }
 
-  /* Image always fits inside the inset while preserving ratio */
   img,
   &__inset > img {
     display: block;
@@ -71,13 +88,14 @@
     object-fit: cover;
   }
 
-  /* Actions overlay (sticks to outer cell edge) */
+  /* Actions overlay — centered horizontally */
   &__actions {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: var(--btn-offset);
+    left: 50%;
+    transform: translateX(-50%); /* horizontal center */
     display: flex;
-    gap: 8px;
+    gap: var(--btn-gap);
     z-index: 10;
     opacity: 0;
     pointer-events: none;
@@ -89,17 +107,22 @@
   }
 
   &__action-btn {
-    width: 24px;
-    height: 24px;
+    width: var(--btn-size);
+    height: var(--btn-size);
     border: none;
     outline: none;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 18px;
     box-shadow: 0 2px 8px #0001;
     cursor: pointer;
     transition: background 0.18s ease, color 0.18s ease;
+
+    svg {
+      width: var(--icon-size);
+      height: var(--icon-size);
+      flex: 0 0 auto;
+    }
 
     &--crop {
       background: #e0e1e2;
@@ -119,7 +142,6 @@
     }
   }
 
-  /* Upload + placeholder INSIDE the inset so margins are respected */
   &__upload,
   &--upload {
     width: 100%;
@@ -129,7 +151,7 @@
     justify-content: center;
     cursor: pointer;
     background: #f3f5f7;
-    border: 0; /* no extra border; inset already has a frame */
+    border: 0;
 
     input[type="file"] {
       display: none;

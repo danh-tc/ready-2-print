@@ -42,6 +42,7 @@ export const CropperModal: React.FC<CropperModalProps> = ({
 }) => {
   const cropperRef = useRef<ReactCropperElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
 
   const { innerWmm, innerHmm, aspectRatio, targetPxW, targetPxH } =
@@ -65,6 +66,7 @@ export const CropperModal: React.FC<CropperModalProps> = ({
     if (isOpen) setLoaded(false);
   }, [isOpen]);
 
+  // ESC to close
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -73,14 +75,15 @@ export const CropperModal: React.FC<CropperModalProps> = ({
     return () => document.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
 
+  // Optional: body scroll lock while open
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node))
-        onClose();
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
     };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   const cropper = () => cropperRef.current?.cropper;
 
@@ -98,6 +101,7 @@ export const CropperModal: React.FC<CropperModalProps> = ({
   const zoomOut = () => cropper()?.zoom(-0.1);
   const rotateLeft = () => cropper()?.rotate(-90);
   const rotateRight = () => cropper()?.rotate(90);
+
   const reset = () => {
     const c = cropper();
     if (!c) return;
@@ -115,7 +119,6 @@ export const CropperModal: React.FC<CropperModalProps> = ({
     if (!c) return { contain: 1, cover: 1 };
     const cb = c.getCropBoxData();
     const id = c.getImageData();
-    // Adjust for rotation (90/270 swaps natural dimensions)
     const rot = Math.abs((c.getData().rotate || 0) % 180) === 90;
     const nW = rot ? id.naturalHeight : id.naturalWidth;
     const nH = rot ? id.naturalWidth : id.naturalHeight;
@@ -129,9 +132,7 @@ export const CropperModal: React.FC<CropperModalProps> = ({
     if (!c) return;
     const cb = c.getCropBoxData();
     const { contain } = getContainCoverRatios();
-    // Zoom around the crop-box center so the image doesn't drift
     c.zoomTo(contain, { x: cb.left + cb.width / 2, y: cb.top + cb.height / 2 });
-    // Then hard-center canvas (some browsers still keep previous left/top)
     requestAnimationFrame(centerCanvas);
   };
 
@@ -144,9 +145,7 @@ export const CropperModal: React.FC<CropperModalProps> = ({
     requestAnimationFrame(centerCanvas);
   };
 
-  const centerImage = () => {
-    centerCanvas();
-  };
+  const centerImage = () => centerCanvas();
 
   const handleReady = () => {
     setLoaded(true);
@@ -189,28 +188,39 @@ export const CropperModal: React.FC<CropperModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="cropper-overlay">
-      <div className="cropper-modal" ref={modalRef}>
-        <div className="cropper-header">
-          <button className="btn-icon" onClick={onClose}>
+    <div
+      className="rethink-cropper__overlay"
+      ref={overlayRef}
+      onMouseDown={(e) => {
+        if (e.target === overlayRef.current) onClose();
+      }}
+    >
+      <div className="rethink-cropper__modal" ref={modalRef}>
+        <div className="rethink-cropper__header">
+          <button
+            className="rethink-cropper__btn rethink-cropper__btn--ghost"
+            onClick={onClose}
+          >
             <X size={20} />
-            Cancel
+            <span>Cancel</span>
           </button>
-          <div className="cropper-title">
+
+          <div className="rethink-cropper__title">
             Inner area (W/H): {innerWmm.toFixed(1)}mm / {innerHmm.toFixed(1)}mm
             · DPI {dpi}
           </div>
+
           <button
-            className="btn-icon confirm"
+            className="rethink-cropper__btn rethink-cropper__btn--confirm"
             onClick={handleConfirm}
             disabled={!loaded}
           >
             <Check size={20} />
-            Confirm
+            <span>Confirm</span>
           </button>
         </div>
 
-        <div className="cropper-body">
+        <div className="rethink-cropper__body">
           <Cropper
             src={imageSrc}
             style={{ height: 400, width: "100%" }}
@@ -229,29 +239,41 @@ export const CropperModal: React.FC<CropperModalProps> = ({
           />
         </div>
 
-        <div className="cropper-toolbar">
-          <button onClick={rotateLeft}>
+        <div className="rethink-cropper__toolbar">
+          <button className="rethink-cropper__tool" onClick={rotateLeft}>
             <RotateCcw size={20} /> Rotate Left
           </button>
-          <button onClick={rotateRight}>
+          <button className="rethink-cropper__tool" onClick={rotateRight}>
             <RotateCw size={20} /> Rotate Right
           </button>
-          <button onClick={zoomOut}>
+          <button className="rethink-cropper__tool" onClick={zoomOut}>
             <ZoomOut size={20} /> Shrink
           </button>
-          <button onClick={zoomIn}>
+          <button className="rethink-cropper__tool" onClick={zoomIn}>
             <ZoomIn size={20} /> Enlarge
           </button>
-          <button onClick={fitInset} title="Contain: show entire image">
+          <button
+            className="rethink-cropper__tool"
+            onClick={fitInset}
+            title="Contain: show entire image"
+          >
             <Minimize2 size={20} /> Fit
           </button>
-          <button onClick={fillInset} title="Cover: fill inset without gaps">
+          <button
+            className="rethink-cropper__tool"
+            onClick={fillInset}
+            title="Cover: fill inset without gaps"
+          >
             <Maximize2 size={20} /> Fill
           </button>
-          <button onClick={centerImage} title="Center image in frame">
+          <button
+            className="rethink-cropper__tool"
+            onClick={centerImage}
+            title="Center image in frame"
+          >
             <Crosshair size={20} /> Center
           </button>
-          <button onClick={reset}>
+          <button className="rethink-cropper__tool" onClick={reset}>
             <Undo2 size={20} /> Reset
           </button>
         </div>
