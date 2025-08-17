@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/rethink-foundation.scss";
 import "@/styles/_reset.scss";
+import "@/components/layout/breakpoint-hardgate.scss";
+import BreakpointHardGate from "@/components/layout/BreakpointHardGate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <BreakpointHardGate />
         <Header />
         {children}
         <Footer />
