@@ -10,8 +10,24 @@
   z-index: 60;
   display: flex;
   flex-direction: column;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    Arial;
+
+  &__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background: rgba(
+      0,
+      0,
+      0,
+      0.35
+    ); /* or transparent if you don't want a dim */
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end; /* right-side drawer */
+    z-index: 10000;
+  }
 
   &__header {
     display: flex;
