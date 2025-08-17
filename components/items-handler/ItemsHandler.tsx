@@ -15,6 +15,8 @@ import { autoCoverCrop } from "@/lib/autoCoverCrop";
 import { rotateIfNeeded } from "@/lib/rotateIfNeeded";
 import ExportQueueDrawer from "./ExportQueueDrawer";
 import { useExportQueueStore } from "@/store/useExportQueueStore";
+import FullScreenBrandedLoader from "../layout/FullScreenLoader";
+import { useLoadingTask } from "@/hooks/useLoadingTask";
 
 export default function ItemsHandler() {
   const [images, setImages] = useState<(UploadedImage | undefined)[]>([]);
@@ -23,6 +25,9 @@ export default function ItemsHandler() {
   const image = useImpositionStore((s) => s.image);
   const paper = useImpositionStore((s) => s.paper);
   const meta = useImpositionStore((s) => s.meta);
+  const displayMeta = useImpositionStore((s) => s.displayMeta);
+
+  const { isLoading, runWithLoading } = useLoadingTask();
 
   const layout = calculateGridLayout(paper, image);
   const slotsPerSheet = layout.rows * layout.cols;
@@ -89,13 +94,12 @@ export default function ItemsHandler() {
         300
       );
 
-      // ⬇️ Pass per-image margins to align with preview/export
       const { dataUrl: autoUrl, crop } = await autoCoverCrop(
         orientedSrc,
         { width: image.width, height: image.height },
         300,
         { type: "image/png" },
-        image.margin // << include margin
+        image.margin
       );
 
       const newImage: UploadedImage = {
@@ -139,8 +143,9 @@ export default function ItemsHandler() {
       layout,
       customerName: meta.customerName,
       description: meta.description,
+      displayMeta: displayMeta,
       date: meta.date,
-      cutMarkLengthMm: 3,
+      cutMarkLengthMm: 6,
       cutMarkThicknessPt: 0.7,
       cutMarkColor: { r: 0, g: 0, b: 0 },
     });
@@ -154,27 +159,30 @@ export default function ItemsHandler() {
     window.open(url, "_blank");
   };
 
-  const handleAddToExportList = async () => {
-    const pdfBytes = await buildCurrentPdfBytes();
+  const handleAddToExportList = () =>
+    runWithLoading(async () => {
+      const pdfBytes = await buildCurrentPdfBytes();
 
-    const { PDFDocument } = await import("pdf-lib");
-    const doc = await PDFDocument.load(pdfBytes);
-    const pageCount = doc.getPageCount();
+      const { PDFDocument } = await import("pdf-lib");
+      const doc = await PDFDocument.load(pdfBytes);
+      const pageCount = doc.getPageCount();
 
-    const name = meta.customerName?.trim() || `Job ${queueItems.length + 1}`;
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const name = meta.customerName?.trim() || `Job ${queueItems.length + 1}`;
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
 
-    await addToQueue(name, pageCount, blob);
-    setIsQueueOpen(true);
-  };
+      await addToQueue(name, pageCount, blob);
+      setIsQueueOpen(true);
+    });
 
-  const handleExportAll = async () => {
-    const merged = await exportAllQueued();
-    if (!merged) return;
-    const blob = new Blob([merged], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  };
+  const handleExportAll = () =>
+    runWithLoading(async () => {
+      const merged = await exportAllQueued();
+      if (!merged) return;
+
+      const blob = new Blob([merged], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    });
 
   const hydrated = useHydrated();
   if (!hydrated) return null;
@@ -202,7 +210,6 @@ export default function ItemsHandler() {
                 return merged;
               });
             }}
-            maxImages={30}
             label="Upload your images"
             uploadedImages={images}
             onClearAll={handleClearAllUploadedImages}
@@ -210,10 +217,7 @@ export default function ItemsHandler() {
             dpi={300}
             output={{ type: "image/png" }}
           />
-          <div className="rethink-status-line">
-            Uploaded: {images.filter(Boolean).length}/30 · Queued:{" "}
-            {queueItems.length}
-          </div>
+          <div className="rethink-status-line">Queued: {queueItems.length}</div>
         </div>
 
         <div className="rethink-toolbar__right">
@@ -283,7 +287,7 @@ export default function ItemsHandler() {
       {cropModal.open && cropModal.src && (
         <CropperModal
           imageData={image}
-          dpi={300} // ⬅️ ensure cropped canvas matches inner target pixel size
+          dpi={300}
           isOpen={cropModal.open}
           imageSrc={cropModal.src}
           onClose={() =>
@@ -314,6 +318,14 @@ export default function ItemsHandler() {
         onClear={clearQueue}
         onMove={moveQueue}
         onRemove={removeFromQueue}
+      />
+
+      <FullScreenBrandedLoader
+        open={isLoading}
+        text="Please wait a moment. We are currently processing your request."
+        backdropColor="#fff"
+        textColor="#3a3a3a"
+        dotColor="#b8864d"
       />
     </div>
   );

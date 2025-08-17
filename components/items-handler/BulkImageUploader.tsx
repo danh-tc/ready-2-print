@@ -1,14 +1,13 @@
-// components/items-handler/BulkImageUploader.tsx
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Upload, Trash2 } from "lucide-react";
 import "./bulk-image-uploader.scss";
 import type { UploadedImage } from "@/types/types";
 import { rotateIfNeeded } from "@/lib/rotateIfNeeded";
 import { autoCoverCrop } from "@/lib/autoCoverCrop";
-import FullScreenLoader from "../layout/FullScreenLoader";
 import FullScreenBrandedLoader from "../layout/FullScreenLoader";
+import { useLoadingTask } from "@/hooks/useLoadingTask";
 
 interface BulkImageUploaderProps {
   onImagesLoaded: (images: UploadedImage[]) => void;
@@ -33,7 +32,7 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
   output = { type: "image/png" },
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, runWithLoading } = useLoadingTask();
 
   const handleButtonClick = () => {
     inputRef.current?.click();
@@ -43,8 +42,7 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
 
-    setIsLoading(true);
-    try {
+    await runWithLoading(async () => {
       // Process all files in parallel, preserve order
       const images = await Promise.all(
         files.map(async (file): Promise<UploadedImage> => {
@@ -88,11 +86,10 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
       );
 
       onImagesLoaded(images);
-    } finally {
-      // reset file input so same files can be re-selected later
-      e.target.value = "";
-      setIsLoading(false);
-    }
+    });
+
+    // reset file input so same files can be re-selected later
+    e.target.value = "";
   };
 
   return (
@@ -135,7 +132,9 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
 
       <FullScreenBrandedLoader
         open={isLoading}
-        text="Please wait a moment. We are currently processing your request."
+        text="Uploading and preparing your images…"
+        backdropColor="#fff"
+        textColor="#3a3a3a"
         dotColor="#b8864d"
       />
     </div>
