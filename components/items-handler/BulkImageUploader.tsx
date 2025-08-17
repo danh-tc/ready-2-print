@@ -1,27 +1,29 @@
+"use client";
+
 import React, { useRef } from "react";
 import { Upload, Trash2 } from "lucide-react";
 import "./bulk-image-uploader.scss";
 import type { UploadedImage } from "@/types/types";
 import { rotateIfNeeded } from "@/lib/rotateIfNeeded";
 import { autoCoverCrop } from "@/lib/autoCoverCrop";
+import FullScreenBrandedLoader from "../layout/FullScreenLoader";
+import { useLoadingTask } from "@/hooks/useLoadingTask";
 
 interface BulkImageUploaderProps {
   onImagesLoaded: (images: UploadedImage[]) => void;
-  maxImages?: number;
   label?: string;
   uploadedImages?: (UploadedImage | undefined)[];
   onClearAll?: () => void;
-  /** NEW: slot size to fit (in mm). If provided, images are auto-cropped like 'cover'. */
+  /** Slot size to fit (in mm). If provided, images are auto-cropped like 'cover'. */
   targetSizeMm?: { width: number; height: number };
-  /** NEW: output DPI for the auto-cropped image (default 300). */
+  /** Output DPI for the auto-cropped image (default 300). */
   dpi?: number;
-  /** NEW: image output format for auto-crop. */
+  /** Image output format for auto-crop. */
   output?: { type: "image/jpeg" | "image/png"; quality?: number };
 }
 
 export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
   onImagesLoaded,
-  maxImages = 30,
   label = "Bulk Select & Arrange Images",
   uploadedImages = [],
   onClearAll,
@@ -30,6 +32,7 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
   output = { type: "image/png" },
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const { isLoading, runWithLoading } = useLoadingTask();
 
   const handleButtonClick = () => {
     inputRef.current?.click();
@@ -39,50 +42,53 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
 
-    if (files.length > maxImages) {
-      alert(`Please select no more than ${maxImages} images.`);
-      return;
-    }
+    await runWithLoading(async () => {
+      // Process all files in parallel, preserve order
+      const images = await Promise.all(
+        files.map(async (file): Promise<UploadedImage> => {
+          const dataUrl = await readAsDataURL(file);
 
-    const images: UploadedImage[] = [];
-    for (const file of files) {
-      const dataUrl = await readAsDataURL(file);
+          // Rotate to match target orientation if provided
+          const orientedSrc = targetSizeMm
+            ? await rotateIfNeeded(
+                dataUrl,
+                targetSizeMm.width,
+                targetSizeMm.height,
+                dpi
+              )
+            : dataUrl;
 
-      // ✅ Rotate if needed before crop
-      let orientedSrc = dataUrl;
-      if (targetSizeMm) {
-        orientedSrc = await rotateIfNeeded(
-          dataUrl,
-          targetSizeMm.width,
-          targetSizeMm.height,
-          dpi
-        );
-      }
+          // Auto-crop to "cover" the target slot if provided
+          if (targetSizeMm) {
+            const { dataUrl: autoUrl, crop } = await autoCoverCrop(
+              orientedSrc,
+              targetSizeMm,
+              dpi,
+              output
+            );
+            return {
+              originalSrc: orientedSrc,
+              src: autoUrl,
+              name: file.name,
+              file,
+              crop,
+            };
+          }
 
-      let workingSrc = orientedSrc;
-      let crop: UploadedImage["crop"] | undefined;
+          // No target: just return oriented image
+          return {
+            originalSrc: orientedSrc,
+            src: orientedSrc,
+            name: file.name,
+            file,
+          };
+        })
+      );
 
-      if (targetSizeMm) {
-        const { dataUrl: autoUrl, crop: autoCrop } = await autoCoverCrop(
-          orientedSrc,
-          targetSizeMm,
-          dpi,
-          output
-        );
-        workingSrc = autoUrl;
-        crop = autoCrop;
-      }
+      onImagesLoaded(images);
+    });
 
-      images.push({
-        originalSrc: orientedSrc,
-        src: workingSrc,
-        name: file.name,
-        file,
-        crop,
-      });
-    }
-
-    onImagesLoaded(images);
+    // reset file input so same files can be re-selected later
     e.target.value = "";
   };
 
@@ -119,10 +125,18 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
           style={{ display: "none" }}
         />
       </button>
+
       <div className="bulk-image-uploader__hint">
         Uploaded: <b>{uploadedImages.filter(Boolean).length}</b>
-        {maxImages && <span> / {maxImages}</span>}
       </div>
+
+      <FullScreenBrandedLoader
+        open={isLoading}
+        text="Uploading and preparing your images…"
+        backdropColor="#fff"
+        textColor="#3a3a3a"
+        dotColor="#b8864d"
+      />
     </div>
   );
 };
