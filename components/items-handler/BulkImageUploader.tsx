@@ -20,6 +20,8 @@ interface BulkImageUploaderProps {
   dpi?: number;
   /** Image output format for auto-crop. */
   output?: { type: "image/jpeg" | "image/png"; quality?: number };
+  /** Optional per-image margins in mm; if provided, crop fills the inner area (target - margins). */
+  marginMm?: { top: number; right: number; bottom: number; left: number };
 }
 
 export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
@@ -30,6 +32,7 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
   targetSizeMm,
   dpi = 300,
   output = { type: "image/png" },
+  marginMm,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { isLoading, runWithLoading } = useLoadingTask();
@@ -64,7 +67,8 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
               orientedSrc,
               targetSizeMm,
               dpi,
-              output
+              output,
+              marginMm
             );
             return {
               originalSrc: orientedSrc,
