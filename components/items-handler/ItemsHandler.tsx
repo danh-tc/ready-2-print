@@ -152,12 +152,13 @@ export default function ItemsHandler() {
     return pdfBytes;
   };
 
-  const handleExportPdf = async () => {
-    const pdfBytes = await buildCurrentPdfBytes();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  };
+  const handleExportPdf = () =>
+    runWithLoading(async () => {
+      const pdfBytes = await buildCurrentPdfBytes();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    });
 
   const handleAddToExportList = () =>
     runWithLoading(async () => {
@@ -216,6 +217,7 @@ export default function ItemsHandler() {
             targetSizeMm={{ width: image.width, height: image.height }}
             dpi={300}
             output={{ type: "image/png" }}
+            marginMm={image.margin}
           />
           <div className="rethink-status-line">Queued: {queueItems.length}</div>
         </div>
