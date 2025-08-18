@@ -1,35 +1,73 @@
-.sheet-paginator {
+/* Tokens (tweak to match your design system) */
+:root {
+  --rethink-accent: #1b8830; /* matches your confirm green */
+  --rethink-text: #253f3f;
+  --rethink-muted: #98a2b3;
+  --rethink-border: #e5e7eb;
+  --rethink-border-strong: #cfd5dc;
+  --rethink-surface: #ffffff;
+  --rethink-hover: #f4f6f5;
+  --rethink-shadow: 0 1px 2px rgba(16, 24, 40, 0.06),
+    0 1px rgba(16, 24, 40, 0.03);
+}
+
+/* Block */
+.rethink-paginator {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin: 18px 0 12px 0;
+  justify-content: center; /* center in the page */
+  gap: 14px;
+  margin: 18px 0 12px;
   user-select: none;
 
-  button {
-    font-size: 18px;
-    padding: 4px 12px;
-    border: 1px solid #bbb;
-    background: #f8f8f8;
-    border-radius: 6px;
+  /* Elements */
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px; /* soft rounded squares (as in your UI) */
+    border: 1px solid var(--rethink-border-strong);
+    background: var(--rethink-surface);
+    box-shadow: var(--rethink-shadow);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background-color 0.15s ease, color 0.15s ease,
+      border-color 0.15s ease;
+
+    &:focus-visible {
+      outline: 2px solid var(--rethink-accent);
+      outline-offset: 2px;
+    }
+
+    &:not(:disabled):hover {
+      background: var(--rethink-hover);
+      color: var(--rethink-accent);
+      border-color: var(--rethink-border);
+    }
 
     &:disabled {
-      opacity: 0.5;
+      color: var(--rethink-muted);
       cursor: not-allowed;
-    }
-    &:not(:disabled):hover {
-      background: #e0e5e3;
-      color: #3a6e57;
+      opacity: 0.6;
+      box-shadow: none;
+      background: #f8f9fa;
     }
   }
 
-  span {
-    font-size: 15px;
-    font-weight: 500;
-    color: #253f3f;
-    min-width: 110px;
+  &__icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+
+  &__label {
+    min-width: 130px;
     text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--rethink-text);
     letter-spacing: 0.01em;
   }
 }

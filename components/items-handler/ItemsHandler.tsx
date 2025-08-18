@@ -1,7 +1,7 @@
 "use client";
 
 import "./items-handler.scss";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { BulkImageUploader } from "@/components/items-handler/BulkImageUploader";
 import { PaperPreview } from "../layout/PaperPreview";
 import { calculateGridLayout } from "@/lib/layoutCalculator";
@@ -31,6 +31,9 @@ export default function ItemsHandler() {
 
   const layout = calculateGridLayout(paper, image);
   const slotsPerSheet = layout.rows * layout.cols;
+
+  // --- Derived: do we have any uploaded images at all? ---
+  const hasAnyImage = useMemo(() => images.some(Boolean), [images]);
 
   // Build sheets
   const sheets: (UploadedImage | undefined)[][] = [];
@@ -152,16 +155,19 @@ export default function ItemsHandler() {
     return pdfBytes;
   };
 
-  const handleExportPdf = () =>
-    runWithLoading(async () => {
+  const handleExportPdf = () => {
+    if (!hasAnyImage) return; // guard
+    return runWithLoading(async () => {
       const pdfBytes = await buildCurrentPdfBytes();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     });
+  };
 
-  const handleAddToExportList = () =>
-    runWithLoading(async () => {
+  const handleAddToExportList = () => {
+    if (!hasAnyImage) return; // guard
+    return runWithLoading(async () => {
       const pdfBytes = await buildCurrentPdfBytes();
 
       const { PDFDocument } = await import("pdf-lib");
@@ -174,6 +180,7 @@ export default function ItemsHandler() {
       await addToQueue(name, pageCount, blob);
       setIsQueueOpen(true);
     });
+  };
 
   const handleExportAll = () =>
     runWithLoading(async () => {
@@ -234,14 +241,24 @@ export default function ItemsHandler() {
           <button
             className="rethink-btn rethink-btn--outline rethink-btn--md"
             onClick={handleAddToExportList}
-            title="Generate current PDF and add to export list"
+            disabled={!hasAnyImage}
+            title={
+              hasAnyImage
+                ? "Generate current PDF and add to export list"
+                : "Add at least one image to enable"
+            }
           >
             Add to Export List
           </button>
           <button
             className="rethink-btn rethink-btn--primary rethink-btn--md"
             onClick={handleExportPdf}
-            title="Export current job (all sheets)"
+            disabled={!hasAnyImage}
+            title={
+              hasAnyImage
+                ? "Export current job (all sheets)"
+                : "Add at least one image to enable"
+            }
           >
             Export Current
           </button>
