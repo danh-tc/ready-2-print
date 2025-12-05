@@ -204,75 +204,7 @@ export default function ItemsHandler() {
 
   return (
     <div className="rethink-items rethink-container">
-      <div className="rethink-toolbar">
-        <div className="rethink-toolbar__left">
-          <BulkImageUploader
-            onImagesLoaded={(newImgs) => {
-              setImages((prev) => {
-                const merged = [...prev];
-                for (let i = 0; i < newImgs.length; i++) {
-                  const emptyIndex = merged.findIndex((x) => x === undefined);
-                  if (emptyIndex !== -1) merged[emptyIndex] = newImgs[i];
-                  else merged.push(newImgs[i]);
-                }
-                return merged;
-              });
-            }}
-            label="Upload your images"
-            uploadedImages={images}
-            onClearAll={handleClearAllUploadedImages}
-            targetSizeMm={{ width: image.width, height: image.height }}
-            dpi={300}
-            output={{ type: "image/png" }}
-            marginMm={image.margin}
-          />
-          <div className="rethink-status-line">Queued: {queueItems.length}</div>
-        </div>
-
-        <div className="rethink-toolbar__right">
-          <button
-            className="rethink-btn rethink-btn--outline rethink-btn--sm"
-            onClick={() => setIsQueueOpen((v) => !v)}
-            aria-pressed={isQueueOpen}
-            title="Open Export List"
-          >
-            Queue ({queueItems.length})
-          </button>
-          <button
-            className="rethink-btn rethink-btn--outline rethink-btn--md"
-            onClick={handleAddToExportList}
-            disabled={!hasAnyImage}
-            title={
-              hasAnyImage
-                ? "Generate current PDF and add to export list"
-                : "Add at least one image to enable"
-            }
-          >
-            Add to Export List
-          </button>
-          <button
-            className="rethink-btn rethink-btn--primary rethink-btn--md"
-            onClick={handleExportPdf}
-            disabled={!hasAnyImage}
-            title={
-              hasAnyImage
-                ? "Export current job (all sheets)"
-                : "Add at least one image to enable"
-            }
-          >
-            Export Current
-          </button>
-          <button
-            className="rethink-btn rethink-btn--outline rethink-btn--md"
-            onClick={handleExportAll}
-            disabled={!queueItems.length}
-            title="Merge all queued PDFs into one file"
-          >
-            Export All
-          </button>
-        </div>
-      </div>
-
+      {/* Center paginator */}
       <div className="rethink-paginator-row">
         <SheetPaginator
           totalSheets={sheets.length}
@@ -281,28 +213,134 @@ export default function ItemsHandler() {
         />
       </div>
 
-      <div className="rethink-paper">
-        <div className="rethink-paper__chip">
-          {layout.cols}×{layout.rows} · {paper.width}×{paper.height}mm · Gap{" "}
-          {paper.gap.horizontal}/{paper.gap.vertical}mm · Margin{" "}
-          {paper.margin.top}/{paper.margin.right}/{paper.margin.bottom}/
-          {paper.margin.left}mm
+      {/* === 2-column layout === */}
+      <div className="rethink-layout2col">
+        {/* LEFT — Preview */}
+        <div className="rethink-layout2col__left">
+          <div className="rethink-paper">
+            <div className="rethink-paper__chip">
+              {layout.cols}×{layout.rows} · {paper.width}×{paper.height}mm · Gap{" "}
+              {paper.gap.horizontal}/{paper.gap.vertical}mm · Margin{" "}
+              {paper.margin.top}/{paper.margin.right}/{paper.margin.bottom}/
+              {paper.margin.left}mm
+            </div>
+
+            <PaperPreview
+              paper={paper}
+              image={image}
+              customerName={meta.customerName}
+              description={meta.description}
+              images={sheets[currentSheet] || []}
+              date={meta.date}
+              allowSlotImageUpload
+              PREVIEW_W={800}
+              onSlotAddImage={handleSlotAddImage}
+              onSlotRemoveImage={handleSlotRemoveImage}
+              onSlotEditImage={handleSlotEditImage}
+            />
+          </div>
         </div>
 
-        <PaperPreview
-          paper={paper}
-          image={image}
-          customerName={meta.customerName}
-          description={meta.description}
-          images={sheets[currentSheet] || []}
-          date={meta.date}
-          allowSlotImageUpload
-          onSlotAddImage={handleSlotAddImage}
-          onSlotRemoveImage={handleSlotRemoveImage}
-          onSlotEditImage={handleSlotEditImage}
-        />
+        {/* RIGHT — Sidebar */}
+        <aside className="rethink-layout2col__right">
+          {/* Row 1: Queue / Export Current / Export All */}
+          <div className="sidebar-row sidebar-row--buttons">
+            <button
+              className="rethink-btn rethink-btn--outline rethink-btn--sm"
+              onClick={() => setIsQueueOpen((v) => !v)}
+            >
+              Queue ({queueItems.length})
+            </button>
+
+            <button
+              className="rethink-btn rethink-btn--primary rethink-btn--sm"
+              disabled={!hasAnyImage}
+              onClick={handleExportPdf}
+            >
+              Export Current
+            </button>
+
+            <button
+              className="rethink-btn rethink-btn--outline rethink-btn--sm"
+              disabled={!queueItems.length}
+              onClick={handleExportAll}
+            >
+              Export All
+            </button>
+          </div>
+
+          {/* Row 3: Add to Export List */}
+          <div className="sidebar-row">
+            <button
+              className="rethink-btn rethink-btn--outline rethink-btn--md"
+              disabled={!hasAnyImage}
+              onClick={handleAddToExportList}
+            >
+              Add to Export List
+            </button>
+          </div>
+
+          {/* Row 4: Upload Section */}
+          <div className="sidebar-row">
+            <BulkImageUploader
+              label="Upload your images"
+              onImagesLoaded={(newImgs) => {
+                setImages((prev) => {
+                  const merged = [...prev];
+                  for (let i = 0; i < newImgs.length; i++) {
+                    const emptyIndex = merged.findIndex((x) => x === undefined);
+                    if (emptyIndex !== -1) merged[emptyIndex] = newImgs[i];
+                    else merged.push(newImgs[i]);
+                  }
+                  return merged;
+                });
+              }}
+              uploadedImages={images}
+              onClearAll={handleClearAllUploadedImages}
+              targetSizeMm={{ width: image.width, height: image.height }}
+              dpi={300}
+              output={{ type: "image/png" }}
+              marginMm={image.margin}
+            />
+
+            <div className="sidebar-upload-info">
+              Uploaded: {images.filter(Boolean).length} <br />
+              Queued: {queueItems.length}
+            </div>
+          </div>
+
+          {/* Row 2: Back to Configuration */}
+          <div className="sidebar-row">
+            <button
+              className="rethink-btn rethink-btn--outline rethink-btn--md rethink-btn--back"
+              onClick={() => (window.location.href = "/configuration")}
+            >
+              Back to Configuration
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16px"
+                height="16px"
+                viewBox="-19.04 0 75.804 75.804"
+              >
+                <g
+                  id="Group_65"
+                  data-name="Group 65"
+                  transform="translate(-831.568 -384.448)"
+                >
+                  <path
+                    id="Path_57"
+                    data-name="Path 57"
+                    d="M833.068,460.252a1.5,1.5,0,0,1-1.061-2.561l33.557-33.56a2.53,2.53,0,0,0,0-3.564l-33.557-33.558a1.5,1.5,0,0,1,2.122-2.121l33.556,33.558a5.53,5.53,0,0,1,0,7.807l-33.557,33.56A1.5,1.5,0,0,1,833.068,460.252Z"
+                    fill="#111"
+                  />
+                </g>
+              </svg>
+            </button>
+          </div>
+        </aside>
       </div>
 
+      {/* Crop modal + queue drawer + loader */}
       {cropModal.open && cropModal.src && (
         <CropperModal
           imageData={image}

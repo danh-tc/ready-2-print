@@ -10,6 +10,7 @@ import { ImageSettingsForm } from "../config/ImageSettingsForm";
 import { MetaInfoForm } from "../config/MetaInfoForm";
 import { useImpositionStore } from "@/store/useImpositionStore";
 import { useHydrated } from "@/hooks/useImpositionHydrated";
+import { PresetLabelBar } from "../config/PresetLabelBar";
 
 export default function LayoutConfigurator() {
   const paper = useImpositionStore((s) => s.paper);
@@ -33,8 +34,25 @@ export default function LayoutConfigurator() {
   return (
     <section className="rethink-layout-configurator">
       <div className="rethink-layout-configurator__inner rethink-container">
-        {/* LEFT: stacked forms */}
+        {/* LEFT: preset bar + stacked forms */}
         <div className="rethink-layout-configurator__main">
+          <div className="rethink-layout-configurator__card">
+            <h2 className="rethink-layout-configurator__section-title">
+              Meta Data
+            </h2>
+            <MetaInfoForm
+              value={meta}
+              onChange={setMeta}
+              displayMeta={displayMeta ?? true}
+              onDisplayMetaChange={setDisplayMeta}
+            />
+          </div>
+          <div className="rethink-layout-configurator__card">
+            <h2 className="rethink-layout-configurator__section-title">
+              Presets
+            </h2>
+            <PresetLabelBar />
+          </div>
           <div className="rethink-layout-configurator__card">
             <h2 className="rethink-layout-configurator__section-title">
               Paper Settings
@@ -47,18 +65,6 @@ export default function LayoutConfigurator() {
               Image Settings
             </h2>
             <ImageSettingsForm value={image} onChange={setImage} />
-          </div>
-
-          <div className="rethink-layout-configurator__card">
-            <h2 className="rethink-layout-configurator__section-title">
-              Meta Data
-            </h2>
-            <MetaInfoForm
-              value={meta}
-              onChange={setMeta}
-              displayMeta={displayMeta ?? true}
-              onDisplayMetaChange={setDisplayMeta}
-            />
           </div>
         </div>
 

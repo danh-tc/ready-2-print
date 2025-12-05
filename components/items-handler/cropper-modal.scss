@@ -66,6 +66,8 @@
 
   &--confirm {
     color: #1b8830;
+    position: relative;
+    z-index: 10;
   }
   &--ghost {
     color: #333;
@@ -92,11 +94,24 @@
 /* Toolbar */
 .rethink-cropper__toolbar {
   display: flex;
-  justify-content: space-around;
-  gap: 8px;
-  padding: 12px;
-  background: #f1f1f1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
   border-top: 1px solid #ccc;
+  position: absolute;
+  right: calc((100% - 600px) / 2 - 340px);
+  height: 100%;
+  width: 340px;
+
+  > div {
+    display: flex;
+    gap: 10px;
+
+    > button {
+      flex: 1;
+    }
+  }
 }
 
 .rethink-cropper__tool {
@@ -110,6 +125,7 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.15s ease;
+  height: fit-content;
 
   &:hover {
     background-color: #e0f0e9;
