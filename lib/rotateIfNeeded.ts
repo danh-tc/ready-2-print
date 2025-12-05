@@ -1,4 +1,3 @@
-// lib/rotateIfNeeded.ts
 export async function rotateIfNeeded(
   dataUrl: string,
   targetWidthMm: number,
@@ -10,12 +9,13 @@ export async function rotateIfNeeded(
   const imgLandscape = img.naturalWidth >= img.naturalHeight;
   const targetLandscape = targetWidthMm >= targetHeightMm;
 
-  if (imgLandscape === targetLandscape) {
-    // Same orientation → no rotation
+  if (
+    imgLandscape === targetLandscape ||
+    img.naturalWidth === img.naturalHeight
+  ) {
     return dataUrl;
   }
 
-  // Rotate 90° to match orientation
   const canvas = document.createElement("canvas");
   canvas.width = img.naturalHeight;
   canvas.height = img.naturalWidth;

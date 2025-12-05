@@ -92,8 +92,8 @@ export default function ItemsHandler() {
       const dataUrl = reader.result as string;
       const orientedSrc = await rotateIfNeeded(
         dataUrl,
-        image.width,
-        image.height,
+        image.width - (image?.margin?.left || 0) - (image?.margin?.right || 0),
+        image.height - (image?.margin?.top || 0) - (image?.margin?.bottom || 0),
         300
       );
 

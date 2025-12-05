@@ -55,8 +55,12 @@ export const BulkImageUploader: React.FC<BulkImageUploaderProps> = ({
           const orientedSrc = targetSizeMm
             ? await rotateIfNeeded(
                 dataUrl,
-                targetSizeMm.width,
-                targetSizeMm.height,
+                targetSizeMm.width -
+                  (marginMm?.left || 0) -
+                  (marginMm?.right || 0),
+                targetSizeMm.height -
+                  (marginMm?.top || 0) -
+                  (marginMm?.bottom || 0),
                 dpi
               )
             : dataUrl;
