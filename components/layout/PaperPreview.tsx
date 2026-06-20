@@ -16,6 +16,7 @@ interface Props {
   showMeta?: boolean;
   images?: (UploadedImage | undefined)[];
   allowSlotImageUpload?: boolean;
+  PREVIEW_W?: number;
   onSlotAddImage?: (slotIdx: number, file: File) => void;
   onSlotRemoveImage?: (slotIdx: number) => void;
   onSlotEditImage?: (slotIdx: number) => void;
@@ -29,11 +30,11 @@ export const PaperPreview: React.FC<Props> = ({
   description,
   images,
   allowSlotImageUpload = false,
+  PREVIEW_W = 500,
   onSlotAddImage,
   onSlotRemoveImage,
   onSlotEditImage,
 }) => {
-  const PREVIEW_W = 500;
   const aspect = paper.height / paper.width;
   const previewWidth = PREVIEW_W;
   const previewHeight = PREVIEW_W * aspect;

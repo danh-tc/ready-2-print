@@ -196,86 +196,96 @@ export const CropperModal: React.FC<CropperModalProps> = ({
       }}
     >
       <div className="rethink-cropper__modal" ref={modalRef}>
-        <div className="rethink-cropper__header">
-          <button
-            className="rethink-cropper__btn rethink-cropper__btn--ghost"
-            onClick={onClose}
-          >
-            <X size={20} />
-            <span>Cancel</span>
-          </button>
+        <div className="rethink-cropper__info-container">
+          <div className="rethink-cropper__header">
+            <button
+              className="rethink-cropper__btn rethink-cropper__btn--ghost"
+              onClick={onClose}
+            >
+              <X size={20} />
+              <span>Cancel</span>
+            </button>
 
-          <div className="rethink-cropper__title">
-            Inner area (W/H): {innerWmm.toFixed(1)}mm / {innerHmm.toFixed(1)}mm
-            · DPI {dpi}
+            <div className="rethink-cropper__title">
+              Inner area (W/H): {innerWmm.toFixed(1)}mm / {innerHmm.toFixed(1)}
+              mm · DPI {dpi}
+            </div>
+
+            <button
+              className="rethink-cropper__btn rethink-cropper__btn--confirm"
+              onClick={handleConfirm}
+              disabled={!loaded}
+            >
+              <Check size={20} />
+              <span>Confirm</span>
+            </button>
           </div>
 
-          <button
-            className="rethink-cropper__btn rethink-cropper__btn--confirm"
-            onClick={handleConfirm}
-            disabled={!loaded}
-          >
-            <Check size={20} />
-            <span>Confirm</span>
-          </button>
-        </div>
-
-        <div className="rethink-cropper__body">
-          <Cropper
-            src={imageSrc}
-            style={{ height: 400, width: "100%" }}
-            aspectRatio={aspectRatio}
-            guides
-            viewMode={0}
-            dragMode="move"
-            autoCropArea={1}
-            background={false}
-            responsive
-            checkOrientation={false}
-            cropBoxMovable={false}
-            cropBoxResizable={false}
-            ready={handleReady}
-            ref={cropperRef}
-          />
+          <div className="rethink-cropper__body">
+            <Cropper
+              src={imageSrc}
+              style={{ height: 600, width: "100%" }}
+              aspectRatio={aspectRatio}
+              guides
+              viewMode={0}
+              dragMode="move"
+              autoCropArea={1}
+              background={false}
+              responsive
+              checkOrientation={false}
+              cropBoxMovable={false}
+              cropBoxResizable={false}
+              ready={handleReady}
+              ref={cropperRef}
+            />
+          </div>
         </div>
 
         <div className="rethink-cropper__toolbar">
-          <button className="rethink-cropper__tool" onClick={rotateLeft}>
-            <RotateCcw size={20} /> Rotate Left
-          </button>
-          <button className="rethink-cropper__tool" onClick={rotateRight}>
-            <RotateCw size={20} /> Rotate Right
-          </button>
-          <button className="rethink-cropper__tool" onClick={zoomOut}>
-            <ZoomOut size={20} /> Shrink
-          </button>
-          <button className="rethink-cropper__tool" onClick={zoomIn}>
-            <ZoomIn size={20} /> Enlarge
-          </button>
-          <button
-            className="rethink-cropper__tool"
-            onClick={fitInset}
-            title="Contain: show entire image"
-          >
-            <Minimize2 size={20} /> Fit
-          </button>
-          <button
-            className="rethink-cropper__tool"
-            onClick={fillInset}
-            title="Cover: fill inset without gaps"
-          >
-            <Maximize2 size={20} /> Fill
-          </button>
-          <button
-            className="rethink-cropper__tool"
-            onClick={centerImage}
-            title="Center image in frame"
-          >
-            <Crosshair size={20} /> Center
-          </button>
-          <button className="rethink-cropper__tool" onClick={reset}>
-            <Undo2 size={20} /> Reset
-          </button>
+          <div>
+            <button className="rethink-cropper__tool" onClick={rotateLeft}>
+              <RotateCcw size={20} /> Rotate Left
+            </button>
+            <button className="rethink-cropper__tool" onClick={rotateRight}>
+              <RotateCw size={20} /> Rotate Right
+            </button>
+          </div>
+          <div>
+            <button className="rethink-cropper__tool" onClick={zoomOut}>
+              <ZoomOut size={20} /> Shrink
+            </button>
+            <button className="rethink-cropper__tool" onClick={zoomIn}>
+              <ZoomIn size={20} /> Enlarge
+            </button>
+          </div>
+          <div>
+            <button
+              className="rethink-cropper__tool"
+              onClick={fitInset}
+              title="Contain: show entire image"
+            >
+              <Minimize2 size={20} /> Fit
+            </button>
+            <button
+              className="rethink-cropper__tool"
+              onClick={fillInset}
+              title="Cover: fill inset without gaps"
+            >
+              <Maximize2 size={20} /> Fill
+            </button>
+          </div>
+          <div>
+            <button
+              className="rethink-cropper__tool"
+              onClick={centerImage}
+              title="Center image in frame"
+            >
+              <Crosshair size={20} /> Center
+            </button>
+            <button className="rethink-cropper__tool" onClick={reset}>
+              <Undo2 size={20} /> Reset
+            </button>
+          </div>
         </div>
       </div>
     </div>
