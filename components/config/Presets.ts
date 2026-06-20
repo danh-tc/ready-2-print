@@ -43,6 +43,36 @@ export const isSameImage = (a: ImageConfig, b: ImageConfig): boolean => {
 
 export const LAYOUT_PRESETS: LayoutPreset[] = [
   {
+    id: "P-TD",
+    label: "P (TD)",
+    paper: {
+      width: 297,
+      height: 210,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      gap: { horizontal: 0, vertical: 6 },
+    },
+    image: {
+      width: 57,
+      height: 94,
+      margin: { top: 7, right: 5, bottom: 21, left: 5 },
+    },
+  },
+  {
+    id: "T-TD",
+    label: "T (TD)",
+    paper: {
+      width: 297,
+      height: 210,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      gap: { horizontal: 0, vertical: 6 },
+    },
+    image: {
+      width: 57,
+      height: 94,
+      margin: { top: 9, right: 5, bottom: 9, left: 5 },
+    },
+  },
+  {
     id: "T",
     label: "T",
     paper: {
