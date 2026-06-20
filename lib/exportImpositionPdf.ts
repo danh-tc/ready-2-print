@@ -232,7 +232,7 @@ export async function exportImpositionPdf({
         `${customerName ?? ""}   ${description ?? ""}   ${date ?? ""}`,
         {
           x: mmToPt(10),
-          y: mmToPt(7),
+          y: mmToPt(2),
           size: 15,
         }
       );
