@@ -11,8 +11,13 @@ import { MetaInfoForm } from "../config/MetaInfoForm";
 import { useImpositionStore } from "@/store/useImpositionStore";
 import { useHydrated } from "@/hooks/useImpositionHydrated";
 import { PresetLabelBar } from "../config/PresetLabelBar";
+import type { LayoutPreset } from "@/components/config/Presets";
 
-export default function LayoutConfigurator() {
+interface Props {
+  readonly presets: LayoutPreset[];
+}
+
+export default function LayoutConfigurator({ presets }: Props) {
   const paper = useImpositionStore((s) => s.paper);
   const setPaper = useImpositionStore((s) => s.setPaper);
   const image = useImpositionStore((s) => s.image);
@@ -21,6 +26,8 @@ export default function LayoutConfigurator() {
   const setMeta = useImpositionStore((s) => s.setMeta);
   const displayMeta = useImpositionStore((s) => s.displayMeta);
   const setDisplayMeta = useImpositionStore((s) => s.setDisplayMeta);
+  const metaStyle = useImpositionStore((s) => s.metaStyle);
+  const setMetaStyle = useImpositionStore((s) => s.setMetaStyle);
 
   const layout = calculateGridLayout(paper, image);
   const hydrated = useHydrated();
@@ -43,15 +50,17 @@ export default function LayoutConfigurator() {
             <MetaInfoForm
               value={meta}
               onChange={setMeta}
-              displayMeta={displayMeta ?? true}
+              displayMeta={displayMeta}
               onDisplayMetaChange={setDisplayMeta}
+              metaStyle={metaStyle}
+              onMetaStyleChange={setMetaStyle}
             />
           </div>
           <div className="rethink-layout-configurator__card">
             <h2 className="rethink-layout-configurator__section-title">
               Presets
             </h2>
-            <PresetLabelBar />
+            <PresetLabelBar presets={presets} />
           </div>
           <div className="rethink-layout-configurator__card">
             <h2 className="rethink-layout-configurator__section-title">

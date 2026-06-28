@@ -22,8 +22,11 @@ interface ExportImpositionPdfParams {
   description?: string;
   date?: string;
 
-  // footer visibility (from zustand store)
-  displayMeta?: boolean; // draw footer only when true
+  // footer visibility + position
+  displayMeta?: boolean;    // draw footer only when true
+  metaX?: number;           // mm from left   (default 10)
+  metaY?: number;           // mm from bottom (default 4)
+  metaFontSize?: number;    // pt             (default 12)
 
   // “+” mark settings
   cutMarkLengthMm?: number; // arm length (default 3 mm)
@@ -117,6 +120,9 @@ export async function exportImpositionPdf({
   description,
   date,
   displayMeta = true,
+  metaX = 10,
+  metaY = 4,
+  metaFontSize = 12,
   cutMarkLengthMm = 3,
   cutMarkThicknessPt = 0.5,
   cutMarkColor = { r: 0, g: 0, b: 0 },
@@ -231,9 +237,9 @@ export async function exportImpositionPdf({
       page.drawText(
         `${customerName ?? ""}   ${description ?? ""}   ${date ?? ""}`,
         {
-          x: mmToPt(10),
-          y: mmToPt(4),
-          size: 12,
+          x: mmToPt(metaX),
+          y: mmToPt(metaY),
+          size: metaFontSize,
         }
       );
     }

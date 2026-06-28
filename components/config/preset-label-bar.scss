@@ -4,22 +4,111 @@
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 
-  &__label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #374151;
-    letter-spacing: 0.04em;
-  }
-
   &__chips {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: center;
   }
 }
 
+/* ── Admin preset group (label + edit/delete icons) ── */
+.rethink-preset-group {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 0, 0, 0.25);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+  }
+
+  &__chip {
+    padding: 6px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 1px;
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: background 120ms ease, color 120ms ease;
+
+    &:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    &--delete:hover {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+  }
+
+  /* Active (selected) state */
+  &--active {
+    background: #000;
+    border-color: #000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+
+    &:hover {
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .rethink-preset-group__chip {
+      color: #fff;
+    }
+
+    .rethink-preset-group__actions {
+      border-left-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .rethink-preset-group__action {
+      color: rgba(255, 255, 255, 0.5);
+
+      &:hover {
+        background: #2a2a2a;
+        color: #fff;
+      }
+
+      &--delete:hover {
+        background: #3d0c0c;
+        color: #fecaca;
+      }
+    }
+  }
+}
+
+/* ── Plain chip (no admin actions) ── */
 .rethink-preset-chip {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.15);
@@ -29,9 +118,9 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  min-width: 80px;
-
-  /* Soft shadow like Reset button */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   transition: background-color 150ms ease, border-color 150ms ease,
     box-shadow 150ms ease, transform 100ms ease;
@@ -46,25 +135,36 @@
     transform: translateY(0);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
-}
 
-.rethink-preset-chip--active {
-  background: #000000 !important;
-  border-color: #000000 !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  &--active {
+    background: #000 !important;
+    border-color: #000 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.4);
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.4);
+    }
   }
-}
 
-.rethink-preset-chip--custom {
-  border-style: dashed;
-  border-color: rgba(0, 0, 0, 0.25);
+  &--custom {
+    border-style: dashed;
+    border-color: rgba(0, 0, 0, 0.25);
 
-  &:hover {
-    border-color: rgba(0, 0, 0, 0.4);
+    &:hover { border-color: rgba(0, 0, 0, 0.4); }
+  }
+
+  &--add {
+    padding: 6px 10px;
+    border-style: dashed;
+    border-color: rgba(0, 0, 0, 0.3);
+    color: #374151;
+    min-width: unset;
+
+    &:hover {
+      border-color: #111;
+      color: #111;
+    }
   }
 }

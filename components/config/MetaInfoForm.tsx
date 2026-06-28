@@ -1,11 +1,16 @@
 "use client";
+
+import type { MetaInfo, MetaStyle } from "@/store/useImpositionStore";
+import { DEFAULT_META_STYLE } from "@/store/useImpositionStore";
 import "./meta-info-form.scss";
 
 interface Props {
-  value: { customerName: string; date: string; description: string };
-  onChange: (next: Props["value"]) => void;
+  value: MetaInfo;
+  onChange: (next: MetaInfo) => void;
   displayMeta: boolean;
   onDisplayMetaChange: (next: boolean) => void;
+  metaStyle: MetaStyle;
+  onMetaStyleChange: (next: MetaStyle) => void;
 }
 
 export const MetaInfoForm: React.FC<Props> = ({
@@ -13,14 +18,13 @@ export const MetaInfoForm: React.FC<Props> = ({
   onChange,
   displayMeta,
   onDisplayMetaChange,
+  metaStyle,
+  onMetaStyleChange,
 }) => (
-  <div
-    className={`rethink-meta-info-form ${
-      !displayMeta ? "rethink-meta-info-form--muted" : ""
-    }`}
-  >
+  <div className={`rethink-meta-info-form${displayMeta ? "" : " rethink-meta-info-form--muted"}`}>
     <form className="rethink-meta-info-form__content">
-      {/* Checkbox */}
+
+      {/* Toggle metadata on/off */}
       <label className="rethink-meta-info-form__checkbox">
         <input
           type="checkbox"
@@ -28,12 +32,12 @@ export const MetaInfoForm: React.FC<Props> = ({
           onChange={(e) => onDisplayMetaChange(e.target.checked)}
           aria-label="Toggle printing metadata"
         />
-        Print metadata
+        <span>Print metadata</span>
       </label>
 
-      {/* Fields (wrap when space is tight) */}
+      {/* Customer name */}
       <label className="rethink-meta-info-form__field">
-        Customer Name
+        <span>Customer Name</span>
         <input
           className="rethink-input"
           type="text"
@@ -43,8 +47,9 @@ export const MetaInfoForm: React.FC<Props> = ({
         />
       </label>
 
+      {/* Date */}
       <label className="rethink-meta-info-form__field">
-        Date
+        <span>Date</span>
         <input
           className="rethink-input"
           type="date"
@@ -54,8 +59,9 @@ export const MetaInfoForm: React.FC<Props> = ({
         />
       </label>
 
+      {/* Description */}
       <label className="rethink-meta-info-form__field rethink-meta-info-form__field--wide">
-        Description
+        <span>Description</span>
         <input
           className="rethink-input"
           type="text"
@@ -65,6 +71,80 @@ export const MetaInfoForm: React.FC<Props> = ({
           placeholder="Notes…"
         />
       </label>
+
+      {/* Custom position section — only when meta is on */}
+      {displayMeta && (
+        <>
+          <div className="rethink-meta-info-form__divider" />
+
+          <label className="rethink-meta-info-form__checkbox">
+            <input
+              type="checkbox"
+              checked={metaStyle.customPosition}
+              onChange={(e) =>
+                onMetaStyleChange({ ...metaStyle, customPosition: e.target.checked })
+              }
+            />
+            <span>Custom position &amp; font size</span>
+          </label>
+
+          {metaStyle.customPosition && (
+            <>
+              <label className="rethink-meta-info-form__field rethink-meta-info-form__field--sm">
+                <span>X (mm)</span>
+                <input
+                  className="rethink-input"
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  value={metaStyle.x}
+                  onChange={(e) =>
+                    onMetaStyleChange({
+                      ...metaStyle,
+                      x: Number(e.target.value) || DEFAULT_META_STYLE.x,
+                    })
+                  }
+                />
+              </label>
+
+              <label className="rethink-meta-info-form__field rethink-meta-info-form__field--sm">
+                <span>Y (mm)</span>
+                <input
+                  className="rethink-input"
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  value={metaStyle.y}
+                  onChange={(e) =>
+                    onMetaStyleChange({
+                      ...metaStyle,
+                      y: Number(e.target.value) || DEFAULT_META_STYLE.y,
+                    })
+                  }
+                />
+              </label>
+
+              <label className="rethink-meta-info-form__field rethink-meta-info-form__field--sm">
+                <span>Font size (pt)</span>
+                <input
+                  className="rethink-input"
+                  type="number"
+                  step="1"
+                  min="6"
+                  max="72"
+                  value={metaStyle.fontSize}
+                  onChange={(e) =>
+                    onMetaStyleChange({
+                      ...metaStyle,
+                      fontSize: Number(e.target.value) || DEFAULT_META_STYLE.fontSize,
+                    })
+                  }
+                />
+              </label>
+            </>
+          )}
+        </>
+      )}
     </form>
   </div>
 );

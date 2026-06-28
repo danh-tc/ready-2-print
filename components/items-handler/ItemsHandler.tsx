@@ -26,6 +26,7 @@ export default function ItemsHandler() {
   const paper = useImpositionStore((s) => s.paper);
   const meta = useImpositionStore((s) => s.meta);
   const displayMeta = useImpositionStore((s) => s.displayMeta);
+  const metaStyle = useImpositionStore((s) => s.metaStyle);
 
   const { isLoading, runWithLoading } = useLoadingTask();
 
@@ -146,8 +147,11 @@ export default function ItemsHandler() {
       layout,
       customerName: meta.customerName,
       description: meta.description,
-      displayMeta: displayMeta,
       date: meta.date,
+      displayMeta: displayMeta,
+      metaX: metaStyle.customPosition ? metaStyle.x : undefined,
+      metaY: metaStyle.customPosition ? metaStyle.y : undefined,
+      metaFontSize: metaStyle.customPosition ? metaStyle.fontSize : undefined,
       cutMarkLengthMm: 6,
       cutMarkThicknessPt: 0.7,
       cutMarkColor: { r: 0, g: 0, b: 0 },
