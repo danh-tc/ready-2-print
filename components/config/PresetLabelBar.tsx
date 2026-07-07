@@ -12,7 +12,7 @@ import {
 } from "./Presets";
 import type { ImageConfig } from "@/types/types";
 import { useAdmin } from "@/hooks/useAdmin";
-import { createPreset, updatePreset, deletePreset } from "@/actions/presets";
+import { getPresets, createPreset, updatePreset, deletePreset } from "@/actions/presets";
 import { PresetFormDialog } from "./PresetFormDialog";
 import "./preset-label-bar.scss";
 
@@ -21,8 +21,9 @@ interface Props {
 }
 
 export const PresetLabelBar: React.FC<Props> = ({
-  presets = LAYOUT_PRESETS,
+  presets: initialPresets = LAYOUT_PRESETS,
 }) => {
+  const [presets, setPresets] = useState(initialPresets);
   const paper = useImpositionStore((s) => s.paper) as PaperConfig;
   const setPaper = useImpositionStore((s) => s.setPaper);
   const image = useImpositionStore((s) => s.image) as ImageConfig;
@@ -57,14 +58,17 @@ export const PresetLabelBar: React.FC<Props> = ({
     e.stopPropagation();
     if (!confirm("Delete this preset?")) return;
     await deletePreset(id);
+    setPresets(await getPresets());
   };
 
   const handleCreate = async (preset: LayoutPreset) => {
     await createPreset(preset);
+    setPresets(await getPresets());
   };
 
   const handleUpdate = async (preset: LayoutPreset) => {
     await updatePreset(preset);
+    setPresets(await getPresets());
   };
 
   return (

@@ -1,7 +1,4 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import type { LayoutPreset } from "@/components/config/Presets";
 
 // ---------- DB row ↔ LayoutPreset mapping ----------
@@ -85,7 +82,7 @@ function presetToRow(
 // ---------- READ (public) ----------
 
 export async function getPresets(): Promise<LayoutPreset[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("presets")
     .select("*")
@@ -98,7 +95,7 @@ export async function getPresets(): Promise<LayoutPreset[]> {
 // ---------- WRITE (admin only — RLS enforces auth) ----------
 
 export async function createPreset(preset: LayoutPreset): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { count } = await supabase
     .from("presets")
@@ -107,12 +104,10 @@ export async function createPreset(preset: LayoutPreset): Promise<void> {
   const row = presetToRow(preset, count ?? 0);
   const { error } = await supabase.from("presets").insert(row);
   if (error) throw new Error(error.message);
-
-  revalidatePath("/configuration");
 }
 
 export async function updatePreset(preset: LayoutPreset): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data: existing, error: fetchError } = await supabase
     .from("presets")
@@ -129,12 +124,10 @@ export async function updatePreset(preset: LayoutPreset): Promise<void> {
     .eq("id", preset.id);
 
   if (error) throw new Error(error.message);
-  revalidatePath("/configuration");
 }
 
 export async function deletePreset(id: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase.from("presets").delete().eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath("/configuration");
 }
