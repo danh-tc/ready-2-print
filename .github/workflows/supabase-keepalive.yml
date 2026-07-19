@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: Ping Supabase health check
         run: |
-          curl -sf "${{ secrets.SUPABASE_URL }}/rest/v1/presets?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
+          curl -sf "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/presets?select=id&limit=1" \
+            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}"
