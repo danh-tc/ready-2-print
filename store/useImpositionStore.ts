@@ -9,6 +9,20 @@ export type MetaInfo = {
   description: string;
 };
 
+export type MetaStyle = {
+  customPosition: boolean;
+  x: number;        // mm from left  (default 10)
+  y: number;        // mm from bottom (default 4)
+  fontSize: number; // pt             (default 12)
+};
+
+export const DEFAULT_META_STYLE: MetaStyle = {
+  customPosition: false,
+  x: 10,
+  y: 4,
+  fontSize: 12,
+};
+
 interface ImpositionState {
   paper: PaperConfig;
   setPaper: (paper: PaperConfig) => void;
@@ -16,8 +30,10 @@ interface ImpositionState {
   setImage: (image: ImageConfig) => void;
   meta: MetaInfo;
   setMeta: (meta: MetaInfo) => void;
-  displayMeta?: boolean; // Optional field for controlling meta display
+  displayMeta: boolean;
   setDisplayMeta: (displayMeta: boolean) => void;
+  metaStyle: MetaStyle;
+  setMetaStyle: (metaStyle: MetaStyle) => void;
 }
 
 const defaultImage: ImageConfig = {
@@ -42,12 +58,13 @@ export const useImpositionStore = create<ImpositionState>()(
       setImage: (image) => set({ image }),
       meta: { customerName: "", date: getTodayString(), description: "" },
       setMeta: (meta) => set({ meta }),
-      setDisplayMeta: (displayMeta) => set({ displayMeta: displayMeta }),
-      displayMeta: true, // Default value for displayMeta
+      displayMeta: true,
+      setDisplayMeta: (displayMeta) => set({ displayMeta }),
+      metaStyle: DEFAULT_META_STYLE,
+      setMetaStyle: (metaStyle) => set({ metaStyle }),
     }),
     {
-      name: "imposition-storage", // localStorage key
-      // Optionally, you can control which fields to persist
+      name: "imposition-storage",
     }
   )
 );

@@ -1,3 +1,8 @@
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* Beautiful, sticky, glassy header (desktop) */
 .rethink-header {
   position: sticky;
@@ -84,6 +89,15 @@
     justify-self: end;
     display: inline-flex;
     align-items: center;
+  }
+
+  &__auth-skeleton {
+    width: 72px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.2s ease-in-out infinite;
   }
 
   /* compact + shadow when scrolled */
