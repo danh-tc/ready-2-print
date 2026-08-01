@@ -3,7 +3,7 @@ import type { LayoutPreset } from "@/components/config/Presets";
 
 // ---------- DB row ↔ LayoutPreset mapping ----------
 
-type PresetRow = {
+export type PresetRow = {
   id: string;
   label: string;
   sort_order: number;
@@ -23,7 +23,7 @@ type PresetRow = {
   image_margin_left: number;
 };
 
-function rowToPreset(row: PresetRow): LayoutPreset {
+export function rowToPreset(row: PresetRow): LayoutPreset {
   return {
     id: row.id,
     label: row.label,
