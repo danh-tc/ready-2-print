@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useImpositionStore } from "@/store/useImpositionStore";
 import {
@@ -24,6 +24,16 @@ export const PresetLabelBar: React.FC<Props> = ({
   presets: initialPresets = LAYOUT_PRESETS,
 }) => {
   const [presets, setPresets] = useState(initialPresets);
+
+  // The site is statically exported (GitHub Pages) — `initialPresets` was
+  // baked in at build time and can be stale, so refetch live data on mount.
+  useEffect(() => {
+    getPresets()
+      .then(setPresets)
+      .catch(() => {
+        // Supabase not configured yet — keep the build-time/static fallback
+      });
+  }, []);
   const paper = useImpositionStore((s) => s.paper) as PaperConfig;
   const setPaper = useImpositionStore((s) => s.setPaper);
   const image = useImpositionStore((s) => s.image) as ImageConfig;
