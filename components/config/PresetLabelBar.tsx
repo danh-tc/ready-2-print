@@ -14,6 +14,7 @@ import type { ImageConfig } from "@/types/types";
 import { useAdmin } from "@/hooks/useAdmin";
 import { getPresets, createPreset, updatePreset, deletePreset } from "@/actions/presets";
 import { PresetFormDialog } from "./PresetFormDialog";
+import { event as gaEvent } from "@/lib/gtag";
 import "./preset-label-bar.scss";
 
 interface Props {
@@ -51,6 +52,10 @@ export const PresetLabelBar: React.FC<Props> = ({
   const handleSelect = (preset: LayoutPreset) => {
     setPaper(preset.paper);
     setImage(preset.image);
+    gaEvent("preset_selected", {
+      preset_id: preset.id,
+      preset_label: preset.label,
+    });
   };
 
   const openAdd = () => {

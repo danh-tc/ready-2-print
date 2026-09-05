@@ -17,6 +17,7 @@ import ExportQueueDrawer from "./ExportQueueDrawer";
 import { useExportQueueStore } from "@/store/useExportQueueStore";
 import FullScreenBrandedLoader from "../layout/FullScreenLoader";
 import { useLoadingTask } from "@/hooks/useLoadingTask";
+import { event as gaEvent } from "@/lib/gtag";
 
 export default function ItemsHandler() {
   const [images, setImages] = useState<(UploadedImage | undefined)[]>([]);
@@ -140,23 +141,32 @@ export default function ItemsHandler() {
   };
 
   const buildCurrentPdfBytes = async () => {
-    const pdfBytes = await exportImpositionPdf({
-      paper,
-      image,
-      sheets,
-      layout,
-      customerName: meta.customerName,
-      description: meta.description,
-      date: meta.date,
-      displayMeta: displayMeta,
-      metaX: metaStyle.customPosition ? metaStyle.x : undefined,
-      metaY: metaStyle.customPosition ? metaStyle.y : undefined,
-      metaFontSize: metaStyle.customPosition ? metaStyle.fontSize : undefined,
-      cutMarkLengthMm: 6,
-      cutMarkThicknessPt: 0.7,
-      cutMarkColor: { r: 0, g: 0, b: 0 },
-    });
-    return pdfBytes;
+    try {
+      const pdfBytes = await exportImpositionPdf({
+        paper,
+        image,
+        sheets,
+        layout,
+        customerName: meta.customerName,
+        description: meta.description,
+        date: meta.date,
+        displayMeta: displayMeta,
+        metaX: metaStyle.customPosition ? metaStyle.x : undefined,
+        metaY: metaStyle.customPosition ? metaStyle.y : undefined,
+        metaFontSize: metaStyle.customPosition
+          ? metaStyle.fontSize
+          : undefined,
+        cutMarkLengthMm: 6,
+        cutMarkThicknessPt: 0.7,
+        cutMarkColor: { r: 0, g: 0, b: 0 },
+      });
+      return pdfBytes;
+    } catch (err) {
+      gaEvent("export_error", {
+        message: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
   };
 
   const handleExportPdf = () => {
@@ -166,6 +176,11 @@ export default function ItemsHandler() {
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
+      gaEvent("pdf_exported", {
+        method: "current",
+        sheet_count: sheets.length,
+        image_count: images.filter(Boolean).length,
+      });
     });
   };
 
@@ -183,17 +198,33 @@ export default function ItemsHandler() {
 
       await addToQueue(name, pageCount, blob);
       setIsQueueOpen(true);
+      gaEvent("added_to_export_queue", {
+        page_count: pageCount,
+        queue_size: queueItems.length + 1,
+      });
     });
   };
 
   const handleExportAll = () =>
     runWithLoading(async () => {
-      const merged = await exportAllQueued();
+      let merged: Uint8Array | null;
+      try {
+        merged = await exportAllQueued();
+      } catch (err) {
+        gaEvent("export_error", {
+          message: err instanceof Error ? err.message : String(err),
+        });
+        throw err;
+      }
       if (!merged) return;
 
       const blob = new Blob([merged], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
+      gaEvent("pdf_exported", {
+        method: "batch",
+        queue_size: queueItems.length,
+      });
     });
 
   const hydrated = useHydrated();
@@ -298,6 +329,7 @@ export default function ItemsHandler() {
                   }
                   return merged;
                 });
+                gaEvent("image_uploaded", { image_count: newImgs.length });
               }}
               uploadedImages={images}
               onClearAll={handleClearAllUploadedImages}
@@ -367,6 +399,7 @@ export default function ItemsHandler() {
             };
             setImages(next);
             setCropModal({ open: false, slotIdx: null, src: null });
+            gaEvent("image_cropped_manual");
           }}
         />
       )}

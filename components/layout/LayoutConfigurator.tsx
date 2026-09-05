@@ -12,6 +12,7 @@ import { useImpositionStore } from "@/store/useImpositionStore";
 import { useHydrated } from "@/hooks/useImpositionHydrated";
 import { PresetLabelBar } from "../config/PresetLabelBar";
 import type { LayoutPreset } from "@/components/config/Presets";
+import { event as gaEvent } from "@/lib/gtag";
 
 interface Props {
   readonly presets: LayoutPreset[];
@@ -34,8 +35,20 @@ export default function LayoutConfigurator({ presets }: Props) {
   if (!hydrated) return null;
 
   const handleResetForm = () => {
+    gaEvent("reset_configuration");
     useImpositionStore.persist.clearStorage();
     window.location.reload();
+  };
+
+  const handleConfirm = () => {
+    gaEvent("configuration_confirmed", {
+      paper_width: paper.width,
+      paper_height: paper.height,
+      image_width: image.width,
+      image_height: image.height,
+      cols: layout.cols,
+      rows: layout.rows,
+    });
   };
 
   return (
@@ -114,6 +127,7 @@ export default function LayoutConfigurator({ presets }: Props) {
           </button>
           <Link
             href="/imposition"
+            onClick={handleConfirm}
             className="rethink-btn rethink-btn--primary rethink-btn--md"
           >
             Confirm
